@@ -10,16 +10,40 @@ public static class AppConfig
         .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
         .Build();
 
-    public static string ConnectionString =>
+    public static string ConnectionString => CleanConnectionString(
         Environment.GetEnvironmentVariable("BUS_TICKET_CONNECTION_STRING")
         ?? Configuration.GetConnectionString("DefaultConnection")
-        ?? "Server=localhost;Database=BusTicketSaleSystem;Integrated Security=True;TrustServerCertificate=True;Encrypt=False;";
+        ?? "Server=localhost;Database=BusTicketSaleSystem;Integrated Security=True;TrustServerCertificate=True;Encrypt=False;");
 
-    public static string MasterConnectionString =>
+    public static string MasterConnectionString => CleanConnectionString(
         Environment.GetEnvironmentVariable("BUS_TICKET_MASTER_CONNECTION_STRING")
         ?? Configuration.GetConnectionString("MasterConnection")
-        ?? "Server=localhost;Database=master;Integrated Security=True;TrustServerCertificate=True;Encrypt=False;";
+        ?? DeriveMasterConnectionString(ConnectionString));
 
+    private static string CleanConnectionString(string? connStr)
+    {
+        if (string.IsNullOrWhiteSpace(connStr)) return string.Empty;
+        connStr = System.Text.RegularExpressions.Regex.Replace(connStr, @"[\u00A0\u1680\u2000-\u200B\u202F\u205F\u3000]", " ");
+        connStr = System.Text.RegularExpressions.Regex.Replace(connStr, @"(?i)\buser\s*id\b", "UID");
+        connStr = System.Text.RegularExpressions.Regex.Replace(connStr, @"(?i)\bpassword\b", "PWD");
+        return connStr.Trim().Trim('"', '\'');
+    }
+
+    private static string DeriveMasterConnectionString(string appConnStr)
+    {
+        try
+        {
+            var builder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(appConnStr)
+            {
+                InitialCatalog = "master"
+            };
+            return builder.ConnectionString;
+        }
+        catch
+        {
+            return "Server=localhost;Database=master;Integrated Security=True;TrustServerCertificate=True;Encrypt=False;";
+        }
+    }
     public static string LogDirectory =>
         Configuration["Logging:LogDirectory"] is { Length: > 0 } value
             ? Path.Combine(AppContext.BaseDirectory, value)
