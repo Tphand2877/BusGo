@@ -18,6 +18,52 @@ public static class DatabaseMigrator
     private static readonly SemaphoreSlim Gate = new(1, 1);
 
     public static string? LastError { get; private set; }
+    public static bool IsReady { get; internal set; }
+    public static string StatusMessage { get; internal set; } = "Initializing...";
+    public static int AttemptCount { get; internal set; }
+
+    public static string GetStartupHtml()
+    {
+        var rawConn = DatabaseOptions.ConnectionString;
+        var maskedConn = Regex.Replace(rawConn, @"(?i)(Password|Pwd)\s*=\s*[^;]+", "$1=******");
+        return $$"""
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="refresh" content="3" />
+    <title>BusGo - Đang kết nối</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0b1320; color: #f1f5f9; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 1.5rem; box-sizing: border-box; }
+        .card { background: #132238; border: 1px solid #1e3a5f; border-radius: 16px; padding: 2rem; max-width: 520px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); text-align: center; }
+        .logo { font-size: 2.2rem; font-weight: 800; color: #38bdf8; margin-bottom: 0.5rem; }
+        .spinner { width: 44px; height: 44px; border: 4px solid #1e3a5f; border-top-color: #38bdf8; border-radius: 50%; animation: spin 1s linear infinite; margin: 1.5rem auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        h1 { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.5rem; }
+        p { color: #94a3b8; font-size: 0.9rem; line-height: 1.5; margin: 0.5rem 0; }
+        .detail { background: #0a101d; border-radius: 8px; padding: 0.75rem 1rem; font-family: monospace; font-size: 0.8rem; color: #cbd5e1; word-break: break-all; margin: 1rem 0; text-align: left; }
+        .badge { display: inline-block; background: #0369a1; color: #e0f2fe; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">🚌 BusGo</div>
+        <div class="badge">Đang khởi động hệ thống</div>
+        <div class="spinner"></div>
+        <h1>Đang kết nối cơ sở dữ liệu SQL Server</h1>
+        <p>Hệ thống tự động kết nối và nạp bảng dữ liệu. Trang sẽ tự động chuyển tiếp khi hoàn tất.</p>
+        <div class="detail">
+            <strong>Trạng thái:</strong> {{System.Net.WebUtility.HtmlEncode(StatusMessage)}}<br/>
+            <strong>Lần thử:</strong> {{AttemptCount}}<br/>
+            <strong>Cấu hình DB:</strong> {{System.Net.WebUtility.HtmlEncode(maskedConn)}}
+        </div>
+        <p style="font-size:0.8rem; color:#64748b;">Trên Railway, hãy đảm bảo bạn đã tạo service SQL Server và cấu hình biến <code>BUS_TICKET_CONNECTION_STRING</code>.</p>
+    </div>
+</body>
+</html>
+""";
+    }
 
     public static async Task<bool> MigrateAsync(CancellationToken cancellationToken = default)
     {

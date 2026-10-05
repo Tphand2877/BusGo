@@ -107,6 +107,24 @@ app.Use(async (context, next) =>
     context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' data: https://img.vietqr.io; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
     await next();
 });
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path == "/health")
+    {
+        await next();
+        return;
+    }
+
+    if (!DatabaseMigrator.IsReady)
+    {
+        context.Response.StatusCode = 503;
+        context.Response.ContentType = "text/html; charset=utf-8";
+        await context.Response.WriteAsync(DatabaseMigrator.GetStartupHtml());
+        return;
+    }
+
+    await next();
+});
 app.UseStaticFiles();
 app.UseRouting();
 app.UseRequestLocalization();
@@ -123,22 +141,39 @@ app.Use(async (context, next) =>
 });
 app.UseAuthorization();
 app.MapRazorPages();
-app.MapGet("/health", () => Results.Ok(new { application = "BusGo", status = "ready" }));
-const int maxRetries = 12;
-var migrated = false;
-for (var attempt = 1; attempt <= maxRetries; attempt++)
+app.MapGet("/health", () => Results.Ok(new
 {
-    if (await DatabaseMigrator.MigrateAsync())
+    application = "BusGo",
+    status = DatabaseMigrator.IsReady ? "ready" : "initializing",
+    database = DatabaseMigrator.StatusMessage
+}));
+_ = Task.Run(async () =>
+{
+    while (!DatabaseMigrator.IsReady)
     {
-        migrated = true;
-        break;
+        DatabaseMigrator.AttemptCount++;
+        DatabaseMigrator.StatusMessage = $"Connecting to database (Attempt {DatabaseMigrator.AttemptCount})...";
+        try
+        {
+            if (await DatabaseMigrator.MigrateAsync())
+            {
+                await DatabaseMigrator.EnsureDefaultOwnerAsync(app.Configuration);
+                if (app.Configuration.GetValue<bool>("Database:SeedUpcomingTrips"))
+                    await DatabaseMigrator.EnsureUpcomingTripsAsync();
+                DatabaseMigrator.IsReady = true;
+                DatabaseMigrator.StatusMessage = "Ready";
+                LoggerService.LogInfo("Database migration and initialization completed successfully.");
+                break;
+            }
+            DatabaseMigrator.StatusMessage = $"Waiting for database: {DatabaseMigrator.LastError}";
+        }
+        catch (Exception ex)
+        {
+            DatabaseMigrator.StatusMessage = $"Connection failed: {ex.Message}";
+            LoggerService.LogError("Database startup attempt failed.", ex);
+        }
+
+        await Task.Delay(TimeSpan.FromSeconds(3));
     }
-    LoggerService.LogWarning($"Database migration attempt {attempt}/{maxRetries} failed. Retrying in 5 seconds... (Error: {DatabaseMigrator.LastError})");
-    await Task.Delay(TimeSpan.FromSeconds(5));
-}
-if (!migrated)
-    throw new InvalidOperationException($"BusGo database initialization failed after {maxRetries} attempts. Check SQL Server configuration and application logs: {DatabaseMigrator.LastError}");
-await DatabaseMigrator.EnsureDefaultOwnerAsync(app.Configuration);
-if (app.Configuration.GetValue<bool>("Database:SeedUpcomingTrips"))
-    await DatabaseMigrator.EnsureUpcomingTripsAsync();
+});
 await app.RunAsync();
