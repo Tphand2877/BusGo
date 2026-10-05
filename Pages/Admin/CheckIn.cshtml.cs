@@ -12,11 +12,6 @@ public sealed class CheckInModel : AdminPageModel
     public bool CanCheckIn => Ticket is { Status: TicketStatuses.Paid, PaymentStatus: TicketStatuses.Paid, UsedAt: null };
     public async Task<IActionResult> OnGetAsync()
     {
-        if (CurrentUser.IsOwner)
-        {
-            TempData["Error"] = T("Chức năng soát vé chỉ dành cho nhân viên bến và quản trị viên vận hành.", "Boarding check-in is reserved for station staff and operations administrators.");
-            return RedirectToPage("Index");
-        }
         if (string.IsNullOrWhiteSpace(Code)) return Page();
         await LoadSafely(async () =>
         {
@@ -27,11 +22,6 @@ public sealed class CheckInModel : AdminPageModel
     }
     public Task<IActionResult> OnPostAsync()
     {
-        if (CurrentUser.IsOwner)
-        {
-            TempData["Error"] = T("Chủ sở hữu (Owner) không trực tiếp soát vé.", "The Owner does not perform boarding check-in.");
-            return Task.FromResult<IActionResult>(RedirectToPage("Index"));
-        }
         return Mutate(async () =>
         {
             if (string.IsNullOrWhiteSpace(Code)) return (false, T("Nhập hoặc quét mã vé.", "Enter or scan a ticket code."));
@@ -43,14 +33,6 @@ public sealed class CheckInModel : AdminPageModel
 
     public async Task<IActionResult> OnPostScanAsync([FromForm] string? code)
     {
-        if (CurrentUser.IsOwner)
-        {
-            return StatusCode(StatusCodes.Status403Forbidden, new CheckInResult(
-                CheckInOutcome.Invalid,
-                false,
-                T("Chủ sở hữu (Owner) không trực tiếp soát vé.", "The Owner does not perform boarding check-in."),
-                ErrorReason: "RoleForbidden"));
-        }
 
         var result = await TicketLifecycleService.ScanAndCheckInTicketAsync(code ?? string.Empty, AdminId, Station);
         return new JsonResult(result);

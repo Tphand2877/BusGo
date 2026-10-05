@@ -235,36 +235,6 @@ WHERE tk.TicketCode = @Code;";
                 ErrorReason: T("Vé chưa hoàn tất thanh toán tiền vé.", "Ticket payment has not been completed."));
         }
 
-        // 4. Station origin check
-        if (!string.IsNullOrWhiteSpace(currentStation) && !origin.Contains(currentStation, StringComparison.OrdinalIgnoreCase))
-        {
-            return new CheckInResult(
-                CheckInOutcome.Invalid,
-                false,
-                Format("Vé khởi hành từ {0}, không thuộc bến {1}.", "Ticket departs from {0}, not station {1}.", origin, currentStation),
-                TicketCode: ticketCode,
-                PassengerName: passengerName,
-                SeatNumbers: seatsDisplay,
-                Route: routeSummary,
-                DepartureTime: departureDisplay,
-                ErrorReason: Format("Sai bến khởi hành ({0} ≠ {1}).", "Wrong departure station ({0} ≠ {1}).", origin, currentStation));
-        }
-
-        // 5. Time window check: departure window within -24h past to +48h future
-        var nowUtc = DateTime.UtcNow;
-        if (departureTime < nowUtc.AddHours(-24) || departureTime > nowUtc.AddHours(48))
-        {
-            return new CheckInResult(
-                CheckInOutcome.Invalid,
-                false,
-                Format("Chuyến xe khởi hành lúc {0}, không nằm trong khung giờ soát vé.", "Trip departs at {0}, outside check-in window.", departureDisplay),
-                TicketCode: ticketCode,
-                PassengerName: passengerName,
-                SeatNumbers: seatsDisplay,
-                Route: routeSummary,
-                DepartureTime: departureDisplay,
-                ErrorReason: T("Thời gian khởi hành ngoài khung giờ tiếp nhận soát vé.", "Departure time outside valid check-in window."));
-        }
 
         // 6. Perform atomic check-in
         const string updateSql = @"

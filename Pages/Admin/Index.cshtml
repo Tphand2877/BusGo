@@ -21,10 +21,7 @@
             {
                 <a class="staff-task" asp-page="Accounts"><span class="staff-task-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8M19 8v6m-3-3h6" /></svg><span class="staff-task-kicker">@T("Nhân sự & Bảo mật", "HR & Security")</span><span class="staff-task-arrow" aria-hidden="true">↗</span></span><strong>@T("Quản lý tài khoản & Quyền", "Accounts & Access")</strong><span>@T("Cấp hoặc gỡ quyền Quản trị viên và theo dõi kiểm toán.", "Grant or revoke Administrator roles and audit changes.")</span></a>
             }
-            else
-            {
-                <a class="staff-task" asp-page="CheckIn"><span class="staff-task-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m8 0h5v-5M7 12l3 3 7-7" /></svg><span class="staff-task-kicker">@T("Tại bến", "At the station")</span><span class="staff-task-arrow" aria-hidden="true">↗</span></span><strong>@T("Soát vé lên xe", "Boarding check-in")</strong><span>@T("Tra mã vé và kiểm tra điều kiện lên xe.", "Look up ticket codes and check boarding eligibility.")</span></a>
-            }
+            <a class="staff-task" asp-page="CheckIn"><span class="staff-task-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m8 0h5v-5M7 12l3 3 7-7" /></svg><span class="staff-task-kicker">@T("Tại bến", "At the station")</span><span class="staff-task-arrow" aria-hidden="true">↗</span></span><strong>@T("Soát vé lên xe", "Boarding check-in")</strong><span>@T("Tra mã vé và kiểm tra điều kiện lên xe.", "Look up ticket codes and check boarding eligibility.")</span></a>
             <a class="staff-task" asp-page="Payments"><span class="staff-task-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3zM3 10h18M7 15h4" /></svg><span class="staff-task-kicker">@T("Đối soát", "Settlement")</span><span class="staff-task-arrow" aria-hidden="true">↗</span></span><strong>@T("Quản lý thanh toán", "Manage payments")</strong><span>@T("Kiểm tra giao dịch, xác nhận thu tiền và hoàn tiền.", "Review transactions, confirm receipts and process refunds.")</span></a>
         </div>
     </section>
@@ -78,7 +75,7 @@
         <section class="card" aria-labelledby="staff-departures-title">
             <div class="staff-section-heading">
                 <div><p class="eyebrow">@T("LỊCH TRÌNH", "SCHEDULES")</p><h2 id="staff-departures-title">@T("Chuyến sắp khởi hành", "Upcoming departures")</h2><p class="muted">@T("6 chuyến gần nhất toàn hệ thống · Giờ địa phương.", "Next 6 departures system-wide · Local time.")</p></div>
-                <div class="staff-section-links"><a class="button secondary small" asp-page="Trips">@T("Tất cả lịch chạy", "All schedules") <span aria-hidden="true">→</span></a>@if (!User.IsInRole("Owner")) { <a asp-page="CheckIn">@T("Mở soát vé", "Open check-in")</a> }</div>
+                <div class="staff-section-links"><a class="button secondary small" asp-page="Trips">@T("Tất cả lịch chạy", "All schedules") <span aria-hidden="true">→</span></a> <a asp-page="CheckIn">@T("Mở soát vé", "Open check-in")</a></div>
             </div>
             @if (Model.Trips.Count == 0)
             {

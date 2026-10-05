@@ -17,7 +17,7 @@ else if(p.CanConfirm && User.IsInRole("Owner")) { <span class="muted" style="fon
 @if(p.CanApproveRefund) { <button asp-page-handler="Refund">@T("Duyệt hoàn tiền", "Approve refund")</button> }
 </div></form>
 }
-@if(p.CanCheckIn && !User.IsInRole("Owner")) { <form method="post" asp-page-handler="CheckIn"><input type="hidden" name="ticketId" value="@p.TicketId" /><input type="hidden" asp-for="Status" /><input type="hidden" asp-for="Search" /><button class="button secondary">@T("Soát vé hành khách", "Check in passenger")</button></form> }
+@if(p.CanCheckIn) { <form method="post" asp-page-handler="CheckIn"><input type="hidden" name="ticketId" value="@p.TicketId" /><input type="hidden" asp-for="Status" /><input type="hidden" asp-for="Search" /><button class="button secondary">@T("Soát vé hành khách", "Check in passenger")</button></form> }
 </section>
 }
 @if(Model.Payments.Count == 0) { <p class="empty-state">@T("Không có thanh toán phù hợp.", "No matching payments.")</p> }

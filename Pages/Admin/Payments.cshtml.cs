@@ -42,11 +42,6 @@ public sealed class PaymentsModel : AdminPageModel
         () => PaymentService.ApproveRefundAsync(id, AdminId, note?.Trim()), T("Đã duyệt hoàn tiền.", "Refund approved."), new { Status, Search });
     public Task<IActionResult> OnPostCheckInAsync(int ticketId)
     {
-        if (CurrentUser.IsOwner)
-        {
-            TempData["Error"] = T("Chủ sở hữu (Owner) không trực tiếp soát vé hành khách.", "The Owner does not perform boarding check-in.");
-            return Task.FromResult<IActionResult>(RedirectToPage(new { Status, Search }));
-        }
         return Mutate(
             () => TicketLifecycleService.CheckInTicketAsync(ticketId, AdminId),
             T("Đã soát vé lên xe.", "Ticket checked in for boarding."),

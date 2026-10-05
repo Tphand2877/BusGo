@@ -71,7 +71,6 @@
                     ("Accounts", T("Tài khoản", "Accounts"), "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8M19 8v6m-3-3h6")
                 })
                 {
-                    if (isOwner && item.Item1 == "CheckIn") continue;
                     var active = IsPage("/Admin/" + item.Item1);
                     <a href="/Admin/@item.Item1" class="@(active ? "active" : null)" aria-current="@(active ? "page" : null)"><svg class="staff-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="@item.Item3" /></svg><span>@item.Item2</span></a>
                 }
