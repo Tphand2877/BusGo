@@ -124,8 +124,20 @@ app.Use(async (context, next) =>
 app.UseAuthorization();
 app.MapRazorPages();
 app.MapGet("/health", () => Results.Ok(new { application = "BusGo", status = "ready" }));
-if (!await DatabaseMigrator.MigrateAsync())
-    throw new InvalidOperationException("BusGo database initialization failed. Check SQL Server configuration and application logs.");
+const int maxRetries = 12;
+var migrated = false;
+for (var attempt = 1; attempt <= maxRetries; attempt++)
+{
+    if (await DatabaseMigrator.MigrateAsync())
+    {
+        migrated = true;
+        break;
+    }
+    LoggerService.LogWarning($"Database migration attempt {attempt}/{maxRetries} failed. Retrying in 5 seconds... (Error: {DatabaseMigrator.LastError})");
+    await Task.Delay(TimeSpan.FromSeconds(5));
+}
+if (!migrated)
+    throw new InvalidOperationException($"BusGo database initialization failed after {maxRetries} attempts. Check SQL Server configuration and application logs: {DatabaseMigrator.LastError}");
 await DatabaseMigrator.EnsureDefaultOwnerAsync(app.Configuration);
 if (app.Configuration.GetValue<bool>("Database:SeedUpcomingTrips"))
     await DatabaseMigrator.EnsureUpcomingTripsAsync();
