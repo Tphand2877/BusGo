@@ -1,10 +1,15 @@
 /**
  * BusGo CheckIn Camera & Barcode Scanner
  * Uses html5-qrcode (Html5Qrcode class) with Web Audio API feedback.
+ * Supports camera mirroring (flip horizontal) and full bilingual (vi-VN / en-US).
  * Note: getUserMedia requires HTTPS or localhost per Web/W3C standards.
  */
 (() => {
     'use strict';
+
+    // Bilingual dictionary & helper
+    const isEn = (document.documentElement.lang || '').toLowerCase().startsWith('en');
+    const t = (vi, en) => isEn ? en : vi;
 
     let html5QrCode = null;
     let currentCameraId = null;
@@ -13,6 +18,7 @@
     let lastScannedCode = '';
     let lastScannedTime = 0;
     let isMuted = localStorage.getItem('busgo_checkin_muted') === 'true';
+    let isMirrored = localStorage.getItem('busgo_checkin_mirrored') === 'true';
     let dismissTimer = null;
 
     // Web Audio API feedback
@@ -52,6 +58,28 @@
         playTone(174.61, 'sawtooth', 0.26, 0.12); // F3
     }
 
+    function applyMirrorState(mirrored) {
+        isMirrored = mirrored;
+        localStorage.setItem('busgo_checkin_mirrored', String(mirrored));
+        const reader = document.querySelector('#qr-reader');
+        if (reader) {
+            reader.classList.toggle('camera-mirrored', mirrored);
+        }
+        const mirrorBtn = document.querySelector('#btn-mirror-camera');
+        if (mirrorBtn) {
+            mirrorBtn.setAttribute('aria-pressed', mirrored ? 'true' : 'false');
+            mirrorBtn.title = mirrored
+                ? t('Tắt lật camera', 'Turn off camera mirror')
+                : t('Bật lật camera', 'Turn on camera mirror');
+            const label = mirrorBtn.querySelector('.mirror-label');
+            if (label) {
+                label.textContent = mirrored
+                    ? t('Lật camera: Bật', 'Mirror: On')
+                    : t('Lật camera: Tắt', 'Mirror: Off');
+            }
+        }
+    }
+
     function normalizeScannedText(raw) {
         if (!raw) return '';
         let text = String(raw).trim();
@@ -87,7 +115,7 @@
     async function processCheckIn(rawCode) {
         const code = normalizeScannedText(rawCode);
         if (!code) {
-            showFeedback('Invalid', 'Mã vé không hợp lệ', 'Mã quét được để trống hoặc sai định dạng.');
+            showFeedback('Invalid', t('Mã vé không hợp lệ', 'Invalid Ticket Code'), t('Mã quét được để trống hoặc sai định dạng.', 'The scanned code is empty or improperly formatted.'));
             playErrorSound();
             return;
         }
@@ -125,7 +153,7 @@
             });
 
             if (response.status === 401 || response.status === 403) {
-                showFeedback('Invalid', 'Quyền truy cập bị từ chối', 'Tài khoản của bạn không có quyền thực hiện soát vé.');
+                showFeedback('Invalid', t('Quyền truy cập bị từ chối', 'Access Denied'), t('Tài khoản của bạn không có quyền thực hiện soát vé.', 'Your account is not permitted to perform boarding check-in.'));
                 playErrorSound();
                 return;
             }
@@ -133,7 +161,7 @@
             const data = await response.json();
             handleScanOutcome(data);
         } catch (err) {
-            showFeedback('Invalid', 'Lỗi kết nối máy chủ', 'Không thể gửi yêu cầu soát vé. Vui lòng thử lại.');
+            showFeedback('Invalid', t('Lỗi kết nối máy chủ', 'Server Connection Error'), t('Không thể gửi yêu cầu soát vé. Vui lòng thử lại.', 'Could not send check-in request. Please try again.'));
             playErrorSound();
         } finally {
             // Auto-resume scanner after ~2.6 seconds
@@ -159,13 +187,13 @@
 
         if (outcome === 'Success') {
             playSuccessSound();
-            showFeedback('Success', 'Hợp lệ – Đã soát vé lên xe', data.message, data);
+            showFeedback('Success', t('Hợp lệ – Đã soát vé lên xe', 'Valid – Boarding Check-in Confirmed'), data.message, data);
         } else if (outcome === 'AlreadyUsed') {
             playWarningSound();
-            showFeedback('AlreadyUsed', 'Vé đã được soát trước đó', data.message, data);
+            showFeedback('AlreadyUsed', t('Vé đã được soát trước đó', 'Ticket Already Checked In'), data.message, data);
         } else {
             playErrorSound();
-            showFeedback('Invalid', 'Vé không hợp lệ', data.message || data.errorReason || 'Không thể soát vé này.', data);
+            showFeedback('Invalid', t('Vé không hợp lệ', 'Invalid Ticket'), data.message || data.errorReason || t('Không thể soát vé này.', 'This ticket cannot be checked in.'), data);
         }
     }
 
@@ -187,12 +215,12 @@
             if (data && (data.passengerName || data.route || data.ticketCode)) {
                 detailsEl.innerHTML = `
                     <div class="scan-details-grid">
-                        <div><small>Mã vé:</small> <strong>${data.ticketCode || ''}</strong></div>
-                        <div><small>Hành khách:</small> <strong>${data.passengerName || 'Khách vãng lai'}</strong></div>
-                        <div><small>Chỗ ngồi:</small> <strong>${data.seatNumbers || 'Chưa gán'}</strong></div>
-                        <div><small>Hành trình:</small> <strong>${data.route || ''}</strong></div>
-                        <div><small>Giờ xuất bến:</small> <strong>${data.departureTime || ''}</strong></div>
-                        ${data.checkedInAt ? `<div><small>Thời gian soát:</small> <strong>${data.checkedInAt}</strong></div>` : ''}
+                        <div><small>${t('Mã vé:', 'Ticket Code:')}</small> <strong>${data.ticketCode || ''}</strong></div>
+                        <div><small>${t('Hành khách:', 'Passenger:')}</small> <strong>${data.passengerName || t('Khách vãng lai', 'Walk-in Passenger')}</strong></div>
+                        <div><small>${t('Chỗ ngồi:', 'Seats:')}</small> <strong>${data.seatNumbers || t('Chưa gán', 'Unassigned')}</strong></div>
+                        <div><small>${t('Hành trình:', 'Journey:')}</small> <strong>${data.route || ''}</strong></div>
+                        <div><small>${t('Giờ xuất bến:', 'Departure:')}</small> <strong>${data.departureTime || ''}</strong></div>
+                        ${data.checkedInAt ? `<div><small>${t('Thời gian soát:', 'Checked in at:')}</small> <strong>${data.checkedInAt}</strong></div>` : ''}
                     </div>
                 `;
                 detailsEl.hidden = false;
@@ -211,6 +239,7 @@
         const scannerPanel = document.querySelector('#camera-scanner-panel');
         const startBtn = document.querySelector('#btn-start-camera');
         const stopBtn = document.querySelector('#btn-stop-camera');
+        const mirrorBtn = document.querySelector('#btn-mirror-camera');
         const cameraSelect = document.querySelector('#camera-select');
         const errorEl = document.querySelector('#camera-error-message');
 
@@ -219,7 +248,7 @@
 
         try {
             if (!window.Html5Qrcode) {
-                throw new Error('Thư viện quét mã chưa được tải. Hãy kiểm tra kết nối mạng.');
+                throw new Error(t('Thư viện quét mã chưa được tải. Hãy kiểm tra kết nối mạng.', 'Scanner library failed to load. Please check your internet connection.'));
             }
 
             if (!html5QrCode) {
@@ -229,7 +258,7 @@
             // Enumerate devices
             const devices = await Html5Qrcode.getCameras();
             if (!devices || devices.length === 0) {
-                showCameraError('Không tìm thấy thiết bị máy ảnh (camera) nào trên máy tính của bạn.');
+                showCameraError(t('Không tìm thấy thiết bị máy ảnh (camera) nào trên máy tính của bạn.', 'No camera device found on this system.'));
                 return;
             }
 
@@ -239,7 +268,7 @@
                 devices.forEach((dev, idx) => {
                     const opt = document.createElement('option');
                     opt.value = dev.id;
-                    opt.textContent = dev.label || `Camera ${idx + 1}`;
+                    opt.textContent = dev.label || `${t('Máy ảnh', 'Camera')} ${idx + 1}`;
                     cameraSelect.appendChild(opt);
                 });
                 cameraSelect.style.display = 'inline-block';
@@ -275,6 +304,10 @@
             isScanning = true;
             if (startBtn) startBtn.style.display = 'none';
             if (stopBtn) stopBtn.style.display = 'inline-flex';
+            if (mirrorBtn) {
+                mirrorBtn.style.display = 'inline-flex';
+                applyMirrorState(isMirrored);
+            }
         } catch (err) {
             handleCameraError(err);
         }
@@ -284,6 +317,7 @@
         const scannerPanel = document.querySelector('#camera-scanner-panel');
         const startBtn = document.querySelector('#btn-start-camera');
         const stopBtn = document.querySelector('#btn-stop-camera');
+        const mirrorBtn = document.querySelector('#btn-mirror-camera');
 
         if (html5QrCode && isScanning) {
             try {
@@ -295,23 +329,30 @@
         if (scannerPanel) scannerPanel.hidden = true;
         if (startBtn) startBtn.style.display = 'inline-flex';
         if (stopBtn) stopBtn.style.display = 'none';
+        if (mirrorBtn) mirrorBtn.style.display = 'none';
     }
 
     function handleCameraError(err) {
         const errStr = (err ? err.message || err.toString() : '').toLowerCase();
-        let vietnameseMsg = 'Không thể khởi động máy ảnh.';
+        let msg = t('Không thể khởi động máy ảnh.', 'Could not start camera.');
 
         if (errStr.includes('notallowed') || errStr.includes('permission') || errStr.includes('denied')) {
-            vietnameseMsg = 'Quyền truy cập máy ảnh bị từ chối. Vui lòng bấm vào biểu tượng ổ khóa 🔒 trên thanh địa chỉ của trình duyệt, bật cho phép Máy ảnh (Camera) rồi tải lại trang.';
+            msg = t(
+                'Quyền truy cập máy ảnh bị từ chối. Vui lòng bấm vào biểu tượng ổ khóa 🔒 trên thanh địa chỉ của trình duyệt, bật cho phép Máy ảnh (Camera) rồi tải lại trang.',
+                'Camera permission denied. Please click the lock icon 🔒 in your browser address bar, enable Camera access, and refresh the page.'
+            );
         } else if (errStr.includes('notfound') || errStr.includes('device') || errStr.includes('devicesnotfound')) {
-            vietnameseMsg = 'Không tìm thấy thiết bị máy ảnh trên máy tính này.';
+            msg = t('Không tìm thấy thiết bị máy ảnh trên máy tính này.', 'No camera device found on this system.');
         } else if (errStr.includes('notreadable') || errStr.includes('in use') || errStr.includes('busy')) {
-            vietnameseMsg = 'Máy ảnh đang bận hoặc đang được sử dụng bởi ứng dụng khác (Zalo, Zoom, Teams, Meet). Vui lòng tắt ứng dụng kia và thử lại.';
+            msg = t(
+                'Máy ảnh đang bận hoặc đang được sử dụng bởi ứng dụng khác (Zalo, Zoom, Teams, Meet). Vui lòng tắt ứng dụng kia và thử lại.',
+                'Camera is in use by another application (Zoom, Teams, Meet). Please close that app and try again.'
+            );
         } else {
-            vietnameseMsg = 'Lỗi máy ảnh: ' + (err.message || err);
+            msg = t('Lỗi máy ảnh: ', 'Camera error: ') + (err.message || err);
         }
 
-        showCameraError(vietnameseMsg);
+        showCameraError(msg);
     }
 
     function showCameraError(msg) {
@@ -326,23 +367,32 @@
     document.addEventListener('DOMContentLoaded', () => {
         const startBtn = document.querySelector('#btn-start-camera');
         const stopBtn = document.querySelector('#btn-stop-camera');
+        const mirrorBtn = document.querySelector('#btn-mirror-camera');
         const cameraSelect = document.querySelector('#camera-select');
         const soundBtn = document.querySelector('#btn-sound-toggle');
         const manualInput = document.querySelector('#manual-code-input');
         const manualForm = document.querySelector('#manual-checkin-form');
 
+        // Initial mirror state
+        if (mirrorBtn) {
+            applyMirrorState(isMirrored);
+            mirrorBtn.addEventListener('click', () => {
+                applyMirrorState(!isMirrored);
+            });
+        }
+
         // Initial sound state
         if (soundBtn) {
             soundBtn.setAttribute('aria-pressed', isMuted ? 'false' : 'true');
-            soundBtn.title = isMuted ? 'Bật âm thanh báo' : 'Tắt âm thanh báo';
-            soundBtn.querySelector('.sound-label').textContent = isMuted ? 'Âm thanh: Tắt' : 'Âm thanh: Bật';
+            soundBtn.title = isMuted ? t('Bật âm thanh báo', 'Turn sound on') : t('Tắt âm thanh báo', 'Turn sound off');
+            soundBtn.querySelector('.sound-label').textContent = isMuted ? t('Âm thanh: Tắt', 'Sound: Off') : t('Âm thanh: Bật', 'Sound: On');
 
             soundBtn.addEventListener('click', () => {
                 isMuted = !isMuted;
                 localStorage.setItem('busgo_checkin_muted', String(isMuted));
                 soundBtn.setAttribute('aria-pressed', isMuted ? 'false' : 'true');
-                soundBtn.title = isMuted ? 'Bật âm thanh báo' : 'Tắt âm thanh báo';
-                soundBtn.querySelector('.sound-label').textContent = isMuted ? 'Âm thanh: Tắt' : 'Âm thanh: Bật';
+                soundBtn.title = isMuted ? t('Bật âm thanh báo', 'Turn sound on') : t('Tắt âm thanh báo', 'Turn sound off');
+                soundBtn.querySelector('.sound-label').textContent = isMuted ? t('Âm thanh: Tắt', 'Sound: Off') : t('Âm thanh: Bật', 'Sound: On');
                 if (!isMuted) playSuccessSound();
             });
         }
