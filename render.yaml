@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: busgo-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:8080
+      - key: STATION_LOCATION
+        value: "Thái Nguyên"
+      - key: DATABASE__SEEDUPCOMINGTRIPS
+        value: "true"
+      - key: BUS_TICKET_CONNECTION_STRING
+        sync: false
+      - key: BUS_TICKET_MASTER_CONNECTION_STRING
+        sync: false
