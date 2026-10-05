@@ -1,0 +1,16 @@
+@page
+@model BusGo.Pages.Customer.CompanyModel
+@{ ViewData["Title"] = Model.Company?.CompanyName ?? T("Nhà xe", "Bus operator"); }
+<a class="back-link" asp-page="Companies">@T("← Danh sách nhà xe", "← Operator directory")</a>
+<div asp-validation-summary="All" class="alert" role="alert"></div>
+@if (Model.Error is not null) { <div class="alert" role="alert">@Model.Error</div> }
+@if (Model.Company is { } company)
+{
+<div class="page-header company-profile"><div><p class="eyebrow">@T("NHÀ XE TRÊN BUSGO", "BUSGO OPERATORS")</p><h1>@company.CompanyName</h1><p class="muted">@T("Thông tin đánh giá, tiện ích và số liên hệ chưa được BusGo xác minh.", "Ratings, amenities and contact numbers have not been verified by BusGo.")</p></div><span class="company-logo" aria-hidden="true">@company.LogoText</span></div>
+<section class="card company-filter"><div><p class="eyebrow">@T("LỊCH TRÌNH", "SCHEDULE")</p><h2>@T("Chuyến xe đang mở", "Available trips")</h2><p class="muted">@T("Xác nhận giờ khởi hành, giá và điểm đón trên từng chuyến trước khi đặt.", "Confirm the departure time, fare and pickup point for each trip before booking.")</p></div><form method="get" class="actions"><input type="hidden" asp-for="Name" /><div class="field"><label asp-for="Date">@T("Ngày đi", "Travel date")</label><input asp-for="Date" type="date" /></div><button class="button secondary" type="submit">@T("Lọc ngày", "Filter by date")</button><a asp-page="Company" asp-route-name="@company.CompanyName">@T("Tất cả chuyến sắp tới", "All upcoming trips")</a></form></section>
+@if (Model.Error is null && Model.Trips.Count == 0) { <div class="empty-state"><h2>@T("Không có chuyến phù hợp", "No matching trips")</h2><p>@T("Thử chọn ngày khác hoặc xem các chuyến đang mở bán.", "Try another date or browse trips currently on sale.")</p></div> }
+<div class="grid grid-2 company-trips">@foreach (var trip in Model.Trips)
+{
+<article class="card journey-card"><p class="departure-time">@trip.Schedule</p><h3>@trip.Route</h3><p class="muted">@Value(trip.BusType) · @trip.LicensePlate</p><p class="route-stops">@trip.RouteWithStops</p><div class="journey-card-bottom"><strong class="price">@trip.FormattedFare</strong><span class="badge">@trip.StatusBadgeText</span>@if (trip.IsAvailable) { <a class="button" asp-page="Seats" asp-route-tripId="@trip.TripId">@T("Chọn ghế", "Choose seats")</a> }</div></article>
+}</div>
+}

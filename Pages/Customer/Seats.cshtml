@@ -1,0 +1,89 @@
+@page
+@model BusGo.Pages.Customer.SeatsModel
+@{ ViewData["Title"] = Model.IsCounterStaff ? (Model.Reviewing ? T("Kiểm tra & thu tiền", "Review & collect payment") : T("Chọn ghế cho khách", "Choose passenger seats")) : (Model.Reviewing ? T("Xác nhận đặt vé", "Confirm booking") : T("Chọn ghế", "Choose seats")); }
+<a class="back-link" asp-page="Search">← @T("Quay lại danh sách chuyến", "Back to departures")</a>
+<div class="page-header"><div><p class="eyebrow">@(Model.IsCounterStaff ? T("BÁN VÉ TẠI QUẦY", "COUNTER TICKET SALES") : T("ĐẶT CHỖ CÙNG BUSGO", "BOOK WITH BUSGO"))</p><h1>@ViewData["Title"]</h1><p class="muted">@(Model.IsCounterStaff ? T("Chọn ghế, nhập thông tin khách vãng lai rồi kiểm tra tiền thu. Khách không cần tài khoản.", "Choose seats, enter walk-in passenger details and review the amount to collect. The passenger does not need an account.") : T("Chọn chỗ ngồi của bạn, kiểm tra thông tin rồi xác nhận.", "Choose your seats, review the details and confirm."))</p></div></div>
+<ol class="booking-steps" aria-label="@T("Các bước đặt vé", "Booking steps")">
+    <li class="@(Model.Reviewing ? "is-complete" : "is-current")" aria-current="@(Model.Reviewing ? null : "step")"><span>01</span> @T("Chọn ghế", "Choose seats")</li>
+    <li class="@(Model.Reviewing ? "is-current" : "")" aria-current="@(Model.Reviewing ? "step" : null)"><span>02</span> @T("Kiểm tra thông tin", "Review details")</li>
+    <li><span>03</span> @(Model.IsCounterStaff ? T("Thu tiền & giao vé", "Collect payment & issue ticket") : T("Đặt chỗ & thanh toán", "Book & pay"))</li>
+</ol>
+@if (Model.Error is not null) { <div class="alert" role="alert">@Model.Error</div> }
+<div asp-validation-summary="All" class="alert" role="alert"></div>
+@if (Model.Trip is { } trip)
+{
+<section class="card booking-route">
+    <div><span class="badge">@trip.CompanyName</span><h2>@trip.Route</h2><p class="departure-time">@trip.Schedule</p><p class="muted">@Value(trip.BusType) · @trip.LicensePlate</p><p class="route-stops">@trip.RouteWithStops</p></div>
+    <div class="booking-fare"><span class="muted">@T("Giá mỗi ghế", "Fare per seat")</span><strong>@trip.PriceDisplay</strong><span class="muted">@T("Tổng tiền ở bước kiểm tra", "Total shown at review")</span></div>
+</section>
+@if (Model.Reviewing)
+{
+<section class="card booking-review">
+    <p class="eyebrow">@T("TRƯỚC KHI XÁC NHẬN", "BEFORE YOU CONFIRM")</p><h2>@T("Kiểm tra thông tin đặt vé", "Review booking details")</h2>
+    <dl class="review-details"><div><dt>@T("Hành khách", "Passenger")</dt><dd>@Model.PassengerName</dd></div><div><dt>@T("Điện thoại", "Phone")</dt><dd>@(string.IsNullOrWhiteSpace(Model.PassengerPhone) ? T("Không cung cấp", "Not provided") : Model.PassengerPhone)</dd></div><div><dt>@T("Ghế đã chọn", "Selected seats")</dt><dd>@Model.SelectedSeats (@Format("{0} ghế", "{0} seats", Model.SeatIds.Count))</dd></div><div><dt>@T("Thanh toán", "Payment")</dt><dd>@(Model.PaymentMethod == "CounterCash" ? T("Tiền mặt tại quầy", "Cash at the counter") : Model.PaymentMethod == "Cash" ? T("Tiền mặt trên xe", "Cash on board") : T("Chuyển khoản VietQR", "VietQR bank transfer"))</dd></div></dl>
+    @if (Model.Quote.DiscountId.HasValue)
+    {
+        <dl class="review-details">
+            <div><dt>@T("Giá vé gốc", "Original fare")</dt><dd>@Model.Quote.BaseFare.ToString("N0") @T("đ", "VND")</dd></div>
+            <div><dt>@T("Ưu đãi thành viên", "Membership discount") · @MembershipLabels.Display(Model.Quote.Tier)</dt><dd>@Model.Quote.DiscountName · @Model.Quote.Percent.ToString("0.##")% · −@Model.Quote.DiscountAmount.ToString("N0") @T("đ", "VND")</dd></div>
+        </dl>
+    }
+    <div class="booking-total"><span>@T("Tổng tiền đặt vé", "Booking total")</span><strong>@Model.Total.ToString("N0") @T("đ", "VND")</strong></div>
+    <p class="notice">@T("Ghế chỉ được giữ sau khi bạn xác nhận. Tình trạng ghế sẽ được kiểm tra lại lúc đặt.", "Seats are only held after you confirm. Seat availability will be checked again when booking.")</p>
+    @if (!Model.IsCounterStaff)
+    {
+        <p class="form-note">@T("Ưu đãi tốt nhất cho hạng hiện tại được áp dụng tự động, không cộng dồn. Ưu đãi sẽ được kiểm tra lại khi xác nhận.", "The best discount for your current tier is applied automatically, without stacking. Eligibility is checked again when you confirm.") <a asp-page="Membership">@T("Xem quyền lợi thành viên", "View membership benefits")</a></p>
+    }
+    @if (Model.IsCounterStaff)
+    {
+        <p class="notice">@(Model.PaymentMethod == "CounterCash" ? T("Chỉ xác nhận sau khi đã thu đủ số tiền trên. Vé điện tử chỉ phát hành khi hệ thống ghi nhận thanh toán thành công.", "Only confirm after collecting the full amount above. The electronic ticket is issued only after the system records successful payment.") : Model.PaymentMethod == "Cash" ? T("Chỉ giữ chỗ, chưa ghi nhận đã thu tiền. Khách thanh toán cho nhà xe trên xe.", "This only reserves seats; no payment is recorded. The passenger pays the operator on board.") : T("Chỉ giữ chỗ trong 15 phút. Chuyển khoản vẫn chờ đối soát, không tự đánh dấu đã thanh toán.", "Seats are held for 15 minutes only. The transfer still awaits verification and is not automatically marked as paid."))</p>
+    }
+    <form method="post">
+        <input type="hidden" asp-for="TripId" /><input type="hidden" asp-for="PassengerName" /><input type="hidden" asp-for="PassengerPhone" /><input type="hidden" asp-for="PaymentMethod" />
+        <input type="hidden" asp-for="QuotedTotal" /><input type="hidden" asp-for="QuotedDiscountId" />
+        @foreach (var id in Model.SeatIds) { <input type="hidden" name="SeatIds" value="@id" /> }
+        @if (Model.IsCounterStaff && Model.PaymentMethod == "CounterCash")
+        {
+            <label class="counter-cash-ack" for="CashReceived"><input asp-for="CashReceived" /> <span>@T("Đã thu đủ tiền", "Collected the full amount of") <strong>@Model.Total.ToString("N0") @T("đ", "VND")</strong> @T("từ khách", "from the passenger")</span></label>
+            <span asp-validation-for="CashReceived"></span>
+        }
+        <div class="actions"><button class="button" type="submit" asp-page-handler="Book">@(Model.IsCounterStaff ? (Model.PaymentMethod == "CounterCash" ? T("Xác nhận thu tiền & lập vé", "Confirm payment & issue ticket") : T("Giữ chỗ cho khách", "Reserve passenger seats")) : T("Xác nhận đặt vé", "Confirm booking")) · @Model.Total.ToString("N0") @T("đ", "VND")</button><button class="button secondary" type="submit" asp-page-handler="Edit">@T("Sửa lựa chọn", "Edit selection")</button></div>
+    </form>
+</section>
+}
+else
+{
+<form method="post" asp-page-handler="Review">
+    <input type="hidden" asp-for="TripId" />
+    <div class="booking-layout">
+        <section class="card seat-panel" aria-labelledby="seat-heading">
+            <div class="section-heading"><h2 id="seat-heading">@T("Chọn chỗ ngồi", "Choose seats")</h2><a asp-page="Seats" asp-route-tripId="@Model.TripId">@T("Làm mới ghế", "Refresh seats")</a></div>
+            <p class="muted" id="seat-help">@Format("{0} ghế còn · {1} ghế đã đặt. Bạn có thể chọn nhiều ghế.", "{0} seats available · {1} seats booked. You can select multiple seats.", Model.Seats.Count(s => !s.IsBooked), Model.Seats.Count(s => s.IsBooked))</p>
+            <div class="seat-legend" aria-label="@T("Chú thích ghế", "Seat legend")"><span><i aria-hidden="true"></i>@T("Còn trống", "Available")</span><span><i class="selected" aria-hidden="true"></i>@T("Đang chọn", "Selected")</span><span><i class="unavailable" aria-hidden="true"></i>@T("Đã đặt", "Booked")</span></div>
+            <fieldset class="bus-cabin" aria-describedby="seat-help">
+                <legend>@T("Danh sách ghế của chuyến", "Seats for this departure")</legend>
+                <p class="cabin-caption">@T("Chọn theo số ghế · vị trí hiển thị mang tính minh họa", "Choose by seat number · positions shown are illustrative")</p>
+                <div class="seat-grid">
+                @foreach (var seat in Model.Seats)
+                {
+                    <label class="seat @(seat.IsBooked ? "booked" : "")"><input type="checkbox" name="SeatIds" value="@seat.SeatId" checked="@Model.SeatIds.Contains(seat.SeatId)" disabled="@seat.IsBooked" /><span>@seat.SeatNumber</span><small>@(seat.IsBooked ? T("Đã đặt", "Booked") : T("Còn trống", "Available"))</small></label>
+                }
+                </div>
+                @if (Model.Seats.Count == 0) { <p class="empty-state">@T("Xe chưa được cấu hình sơ đồ ghế.", "The seat map has not been configured for this bus.")</p> }
+            </fieldset>
+        </section>
+        <section class="card passenger-panel">
+            <p class="eyebrow">@T("THÔNG TIN ĐẶT CHỖ", "BOOKING DETAILS")</p><h2>@T("Hành khách & thanh toán", "Passenger & payment")</h2>
+            <div class="form-grid">
+                <div class="field"><label asp-for="PassengerName">@T("Họ tên hành khách", "Passenger full name")</label><input asp-for="PassengerName" required maxlength="100" autocomplete="@(Model.IsCounterStaff ? "off" : "name")" /></div>
+                <div class="field"><label asp-for="PassengerPhone">@T("Số điện thoại liên hệ", "Contact phone number") @(Model.IsCounterStaff ? T("(không bắt buộc)", "(optional)") : "")</label><input asp-for="PassengerPhone" type="tel" maxlength="20" autocomplete="@(Model.IsCounterStaff ? "off" : "tel")" /></div>
+                <div class="field"><label asp-for="PaymentMethod">@T("Phương thức thanh toán", "Payment method")</label><select asp-for="PaymentMethod">@if (Model.IsCounterStaff) { <option value="CounterCash">@T("Tiền mặt tại quầy", "Cash at the counter")</option> }<option value="BankTransfer">@T("Chuyển khoản VietQR", "VietQR bank transfer")</option><option value="Cash">@T("Tiền mặt trên xe", "Cash on board")</option></select></div>
+                <p class="notice">@(Model.IsCounterStaff ? T("Tiền mặt tại quầy: xác nhận đã thu đủ tiền ở bước tiếp theo. Chuyển khoản: giữ chỗ 15 phút, chờ đối soát. Tiền mặt trên xe: giữ chỗ, chưa thanh toán.", "Counter cash: confirm full payment receipt at the next step. Bank transfer: a 15-minute hold, awaiting verification. Cash on board: seats reserved, not yet paid.") : T("Chỗ chuyển khoản được giữ 15 phút và cần nhà vận hành xác nhận. Tiền mặt thu trên xe. VietQR hiện chưa tự động đối soát.", "Bank-transfer bookings are held for 15 minutes and require operator confirmation. Cash is collected on board. VietQR verification is not yet automatic."))</p>
+                <button class="button" type="submit" disabled="@(Model.Seats.Count == 0)">@(Model.IsCounterStaff ? T("Kiểm tra vé cho khách", "Review passenger booking") : T("Kiểm tra đặt vé", "Review booking")) <span aria-hidden="true">→</span></button>
+                <p class="form-note">@(Model.IsCounterStaff ? T("Vé được lập bằng tài khoản nhân viên để đối chiếu, với tên và điện thoại của hành khách ở trên.", "The ticket is created under the staff account for reconciliation, using the passenger name and phone number above.") : T("Bạn sẽ xem lại ghế và tổng tiền trước khi xác nhận đặt chỗ.", "You will review your seats and total before confirming the booking."))</p>
+            </div>
+        </section>
+    </div>
+</form>
+}
+}

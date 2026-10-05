@@ -1,0 +1,85 @@
+@model BusGo.Models.TripSearchPanelModel
+@{
+    var today = DateTime.Today.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+    var travelDate = Model.Date?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) ?? today;
+    bool IsMojibake(string value) =>
+        value.Contains("Ã", StringComparison.Ordinal)
+        || value.Contains("Ä", StringComparison.Ordinal)
+        || value.Contains("áº", StringComparison.Ordinal)
+        || value.Contains("á»", StringComparison.Ordinal);
+    var origins = BusGo.Data.TravelLocationCatalog.GetSuggestions(Model.Origins.Where(value => !IsMojibake(value)));
+    var destinations = BusGo.Data.TravelLocationCatalog.GetSuggestions(Model.Destinations.Where(value => !IsMojibake(value)));
+    string CategoryText(string category) => category switch
+    {
+        "Tỉnh / thành hiện nay" => T("Tỉnh / thành hiện nay", "Current province / city"),
+        "Đô thị / điểm đến" => T("Đô thị / điểm đến", "Town / destination"),
+        "Bến xe tham khảo" => T("Bến xe tham khảo", "Bus station (reference)"),
+        "Địa điểm từ tuyến BusGo" => T("Địa điểm từ tuyến BusGo", "Location on a BusGo route"),
+        _ => Value(category)
+    };
+}
+<section class="trip-search-panel" aria-label="@T("Tìm chuyến xe", "Find bus trips")">
+    <form method="get" asp-page="/Customer/Search" class="trip-search-form" data-trip-search-form>
+        @if (ViewData["TripSearchFilters"] is IReadOnlyDictionary<string, string?> filters)
+        {
+            @foreach (var filter in filters)
+            {
+                <input type="hidden" name="@filter.Key" value="@filter.Value" />
+            }
+        }
+        <div class="trip-search-fields">
+            <div class="trip-search-route">
+                <div class="trip-search-location" data-location-picker>
+                    <label class="trip-search-label" for="trip-search-origin">@T("Điểm đi", "Origin")</label>
+                    <div class="trip-search-input-wrap">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 16V7.8c0-.9.7-1.6 1.6-1.6h11.8c.9 0 1.6.7 1.6 1.6V16M3 16h18v2H3zM6.5 18v1.5M17.5 18v1.5M7.5 10h9M8 14h.01M16 14h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6.2V4.5h7.5v1.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                        <input id="trip-search-origin" name="Origin" value="@Model.Origin" type="text" placeholder="@T("Tỉnh/thành, địa danh, bến xe", "Province/city, destination, bus station")" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="trip-origin-options" aria-describedby="trip-location-help" />
+                    </div>
+                    <div class="trip-search-suggestions" id="trip-origin-options" role="listbox" aria-label="@T("Gợi ý điểm đi", "Origin suggestions")" hidden>
+                        <p class="trip-search-suggestions-title" aria-hidden="true">@T("Địa điểm toàn quốc", "Locations across Vietnam")</p>
+                        @for (var index = 0; index < origins.Count; index++)
+                        {
+                            <div class="trip-search-suggestion" role="option" aria-selected="false" id="trip-origin-option-@index" data-location-option data-value="@origins[index].Value" data-search="@origins[index].SearchText"><span>@origins[index].Name</span><small>@CategoryText(origins[index].Category)@(origins[index].Area.Length == 0 ? "" : $" · {origins[index].Area}")</small></div>
+                        }
+                        <div class="trip-search-no-suggestions" role="option" aria-disabled="true" hidden>@T("Không có địa điểm khớp.", "No matching locations.")</div>
+                    </div>
+                </div>
+                <button class="trip-search-swap" type="button" data-swap aria-label="@T("Đổi điểm đi và điểm đến", "Swap origin and destination")" title="@T("Đổi chiều", "Swap direction")">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M7 7h13m0 0-3-3m3 3-3 3M17 17H4m0 0 3 3m-3-3 3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div class="trip-search-location" data-location-picker>
+                    <label class="trip-search-label" for="trip-search-destination">@T("Điểm đến", "Destination")</label>
+                    <div class="trip-search-input-wrap">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 16V7.8c0-.9.7-1.6 1.6-1.6h11.8c.9 0 1.6.7 1.6 1.6V16M3 16h18v2H3zM6.5 18v1.5M17.5 18v1.5M7.5 10h9M8 14h.01M16 14h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6.2V4.5h7.5v1.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                        <input id="trip-search-destination" name="Destination" value="@Model.Destination" type="text" placeholder="@T("Tỉnh/thành, địa danh, bến xe", "Province/city, destination, bus station")" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="trip-destination-options" aria-describedby="trip-location-help" />
+                    </div>
+                    <div class="trip-search-suggestions" id="trip-destination-options" role="listbox" aria-label="@T("Gợi ý điểm đến", "Destination suggestions")" hidden>
+                        <p class="trip-search-suggestions-title" aria-hidden="true">@T("Địa điểm toàn quốc", "Locations across Vietnam")</p>
+                        @for (var index = 0; index < destinations.Count; index++)
+                        {
+                            <div class="trip-search-suggestion" role="option" aria-selected="false" id="trip-destination-option-@index" data-location-option data-value="@destinations[index].Value" data-search="@destinations[index].SearchText"><span>@destinations[index].Name</span><small>@CategoryText(destinations[index].Category)@(destinations[index].Area.Length == 0 ? "" : $" · {destinations[index].Area}")</small></div>
+                        }
+                        <div class="trip-search-no-suggestions" role="option" aria-disabled="true" hidden>@T("Không có địa điểm khớp.", "No matching locations.")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="trip-search-date">
+                <label class="trip-search-label" for="trip-search-date">@T("Ngày khởi hành", "Departure date")</label>
+                <div class="trip-search-date-row">
+                    <input id="trip-search-date" name="Date" type="date" min="@today" value="@travelDate" />
+                    <div class="trip-search-date-shortcuts" aria-label="@T("Chọn ngày nhanh", "Quick date selection")">
+                        <button type="button" data-trip-date-offset="0" aria-pressed="false">@T("Hôm nay", "Today")</button>
+                        <button type="button" data-trip-date-offset="1" aria-pressed="false">@T("Ngày mai", "Tomorrow")</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="trip-search-actions">
+            <button type="submit" class="trip-search-submit">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.3 4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                @T("Tìm chuyến xe", "Find bus trips")
+            </button>
+        </div>
+    </form>
+    <p class="trip-search-location-help" id="trip-location-help">@T("Gợi ý địa danh và bến xe toàn quốc; có thể gõ không dấu. Danh mục không phải danh sách điểm đón đã xác nhận. Chỉ chuyến có trong kết quả BusGo mới đặt được.", "Suggestions cover destinations and bus stations across Vietnam; you can type without accents. This catalog is not a list of confirmed pickup points. Only trips listed in BusGo results can be booked.")</p>
+</section>

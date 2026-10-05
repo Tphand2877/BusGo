@@ -1,0 +1,54 @@
+@page
+@model BusGo.Pages.Admin.DiscountsModel
+@using BusGo.Models
+@{ ViewData["Title"] = T("Ưu đãi thành viên", "Membership discounts"); }
+<header class="page-header"><div><p class="eyebrow">@T("Quản lý ưu đãi toàn hệ thống", "Global campaign management")</p><h1>@T("Ưu đãi thành viên", "Membership discounts")</h1></div></header>
+<partial name="_AdminValidation" />
+@if (Model.Loaded)
+{
+<section class="card">
+    <h2>@T("Hạng thành viên", "Membership tiers")</h2>
+    <p class="muted">@T("Hạng được tính từ tổng tiền vé thực trả đã thanh toán, không gồm vé chờ thanh toán hoặc đã hoàn tiền. Ưu đãi chỉ áp dụng cho đúng hạng hiện tại; không cộng dồn, ưu đãi có tỷ lệ cao nhất được chọn.", "Tiers use lifetime net settled ticket spending, excluding pending or refunded tickets. Offers match the customer's exact current tier; discounts do not stack and the highest percentage wins.")</p>
+    <div class="table-wrap"><table><thead><tr><th>@T("Hạng", "Tier")</th><th>@T("Chi tiêu tối thiểu", "Minimum spending")</th></tr></thead><tbody>
+    @foreach (var tier in Model.Tiers.Where(t => BusGo.Pages.Admin.DiscountsModel.RewardTiers.Contains(t.Tier)))
+    {
+        <tr><td>@tier.DisplayName</td><td>@tier.MinimumSpend.ToString("N0") VND</td></tr>
+    }
+    </tbody></table></div>
+</section>
+<section class="card">
+    <h2>@T("Tạo ưu đãi", "Create an offer")</h2>
+    <p class="muted">@Format("Ngày giờ theo múi giờ máy chủ ({0}), được lưu dưới dạng UTC. Ưu đãi sắp diễn ra có thể được thông báo ngay nhưng chỉ giảm giá trong thời gian áp dụng.", "Dates use the server's local time zone ({0}) and are stored in UTC. Upcoming offers may be announced immediately but reduce fares only within their active window.", TimeZoneInfo.Local.DisplayName)</p>
+    <form method="post" asp-page-handler="Create">
+        <div class="form-grid">
+            <div><label asp-for="Input.Name">@T("Tên ưu đãi", "Offer name")</label><input asp-for="Input.Name" maxlength="100" required /><span asp-validation-for="Input.Name"></span></div>
+            <div><label asp-for="Input.Percent">@T("Mức giảm (%)", "Discount (%)")</label><input asp-for="Input.Percent" type="number" min="0.01" max="99" step="0.01" required /><span asp-validation-for="Input.Percent"></span></div>
+            <div><label asp-for="Input.StartsAt">@T("Bắt đầu", "Starts at")</label><input asp-for="Input.StartsAt" type="datetime-local" required /><span asp-validation-for="Input.StartsAt"></span></div>
+            <div><label asp-for="Input.EndsAt">@T("Kết thúc", "Ends at")</label><input asp-for="Input.EndsAt" type="datetime-local" required /><span asp-validation-for="Input.EndsAt"></span></div>
+        </div>
+        <fieldset><legend>@T("Hạng được hưởng ưu đãi (chọn ít nhất một)", "Eligible tiers (choose at least one)")</legend>
+        @foreach (var tier in BusGo.Pages.Admin.DiscountsModel.RewardTiers)
+        {
+            <label><input type="checkbox" name="Input.TargetTiers" value="@tier" checked="@(Model.Input.TargetTiers?.Contains(tier.ToString()) == true)" /> @MembershipLabels.Display(tier)</label>
+        }
+        <span asp-validation-for="Input.TargetTiers"></span></fieldset>
+        <div class="actions"><button type="submit">@T("Tạo và thông báo", "Create and notify")</button></div>
+    </form>
+</section>
+<section class="card">
+    <h2>@T("Lịch sử ưu đãi", "Campaign history")</h2>
+    <p class="muted">@T("Ưu đãi áp dụng toàn hệ thống, không lọc theo trạm. Vé đã giữ giữ nguyên mức giảm đã lưu, kể cả khi ưu đãi hết hạn hoặc bị ngừng. Không xóa hoặc sửa ưu đãi đã tạo.", "Offers are global and are not station-filtered. Held tickets retain their saved discount even if an offer expires or is deactivated. Created offers cannot be deleted or edited.")</p>
+    <div class="table-wrap"><table><thead><tr><th>@T("Ưu đãi", "Offer")</th><th>@T("Mức giảm", "Discount")</th><th>@T("Hạng áp dụng", "Target tiers")</th><th>@T("Thời gian (giờ địa phương)", "Window (local time)")</th><th>@T("Trạng thái", "Status")</th><th>@T("Thao tác", "Actions")</th></tr></thead><tbody>
+    @foreach (var discount in Model.Discounts)
+    {
+        <tr><td><strong>@discount.Name</strong><br />#@discount.DiscountId</td><td>@discount.Percent.ToString("0.##")%</td><td>@string.Join(", ", discount.TargetTiers.Select(MembershipLabels.Display))</td><td>@BusGo.Pages.Admin.DiscountsModel.LocalTime(discount.StartsAt).ToString("dd/MM/yyyy HH:mm")<br />@BusGo.Pages.Admin.DiscountsModel.LocalTime(discount.EndsAt).ToString("dd/MM/yyyy HH:mm")</td><td><span class="badge">@Model.CampaignStatus(discount)</span></td><td>
+        @if (discount.IsActive)
+        {
+            <form method="post" asp-page-handler="Deactivate" data-confirm="@T("Ngừng ưu đãi này? Vé đã giữ vẫn giữ mức giảm đã lưu.", "Deactivate this offer? Held tickets retain their saved discount.")"><input type="hidden" name="id" value="@discount.DiscountId" /><button class="button danger" type="submit">@T("Ngừng ưu đãi", "Deactivate")</button></form>
+        }
+        </td></tr>
+    }
+    </tbody></table></div>
+    @if (Model.Discounts.Count == 0) { <p class="empty-state">@T("Chưa có ưu đãi thành viên.", "No membership offers yet.")</p> }
+</section>
+}

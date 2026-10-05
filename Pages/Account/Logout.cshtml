@@ -1,0 +1,4 @@
+@page
+@model BusGo.Pages.Account.LogoutModel
+@{ ViewData["Title"] = T("Đăng xuất", "Sign out"); }
+<section class="card"><h1>@T("Bạn muốn đăng xuất?", "Ready to sign out?")</h1><p>@T("Các đặt chỗ vẫn được lưu khi bạn quay lại.", "Your bookings will be here when you return.")</p><form method="post"><div class="actions"><button type="submit" class="button">@T("Đăng xuất", "Sign out")</button><a asp-page="/Index" class="button secondary">@T("Tiếp tục đăng nhập", "Stay signed in")</a></div></form></section>

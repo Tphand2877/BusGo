@@ -1,0 +1,10 @@
+@page
+@model BusGo.Pages.ErrorModel
+@{ ViewData["Title"] = T("Không thể xử lý yêu cầu", "Request unavailable"); }
+<section class="card empty-state">
+    <p class="eyebrow">@T("Hỗ trợ BusGo", "BusGo support")</p>
+    <h1>@T("Không thể hoàn tất yêu cầu này.", "We couldn't complete that request.")</h1>
+    <p>@T("Vui lòng thử lại. Nếu lỗi tiếp diễn, liên hệ bến xe và cung cấp mã tham chiếu bên dưới.", "Please try again. If the problem continues, contact your station and quote the reference below.")</p>
+    <p class="muted">@T("Mã tham chiếu", "Reference"): <code>@Model.Reference</code></p>
+    <a class="button" asp-page="/Index">@T("Về trang chủ", "Back to home")</a>
+</section>

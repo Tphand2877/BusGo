@@ -1,0 +1,43 @@
+@page
+@model BusGo.Pages.SettingsModel
+@{ ViewData["Title"] = T("Cài đặt", "Settings"); }
+<header class="page-header"><div><p class="eyebrow">BUSGO</p><h1>@T("Cài đặt", "Settings")</h1><p class="muted">@T("Tùy chỉnh cách bạn sử dụng BusGo.", "Choose how you use BusGo.")</p></div></header>
+<section class="card appearance-card" aria-labelledby="appearance-heading">
+    <div class="appearance-heading">
+        <div><h2 id="appearance-heading">@T("Giao diện", "Appearance")</h2><p class="muted">@T("Sáng rõ ban ngày, dịu mắt khi trời tối. Chọn không gian phù hợp với bạn.", "Clear by day, comfortable after dark. Choose the appearance that suits you.")</p></div>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none" /></svg>
+    </div>
+    <form method="post" asp-page-handler="Appearance" data-appearance-form
+          data-saved="@T("Đã lưu giao diện cho trình duyệt này.", "Appearance saved for this browser.")"
+          data-save-error="@T("Đã đổi giao diện nhưng chưa lưu được. Hãy cho phép cookie để giữ lựa chọn.", "Appearance changed but could not be saved. Allow cookies to keep your choice.")">
+        <fieldset class="appearance-options">
+            <legend>@T("Chế độ hiển thị", "Display mode")</legend>
+            @foreach (var option in new[] { ("light", T("Sáng", "Light")), ("dark", T("Tối", "Dark")), ("system", T("Hệ thống", "System")) })
+            {
+                <label class="appearance-option">
+                    <span class="appearance-preview appearance-preview-@option.Item1" aria-hidden="true"><i></i><i></i><i></i></span>
+                    <span class="appearance-option-name"><input type="radio" name="appearance" value="@option.Item1" checked="@(Model.SelectedAppearance == option.Item1)" required />@option.Item2</span>
+                </label>
+            }
+        </fieldset>
+        <button type="submit">@T("Lưu giao diện", "Save appearance")</button>
+        <p class="appearance-feedback" role="status" aria-live="polite"></p>
+    </form>
+    <p class="appearance-note">@T("Chế độ Hệ thống tự đổi theo thiết bị. Lựa chọn được lưu trên trình duyệt này, kể cả khi đăng xuất. Bạn cũng có thể đổi nhanh bằng biểu tượng mặt trời / mặt trăng trên thanh điều hướng.", "System follows your device appearance. Your choice stays in this browser, even after signing out. Use the sun / moon icon in the navigation for a quick switch.")</p>
+</section>
+<section class="card settings-card" aria-labelledby="language-heading">
+    <h2 id="language-heading">@T("Ngôn ngữ ứng dụng", "Application language")</h2>
+    <p class="muted">@T("Áp dụng cho giao diện, thông báo, email và vé tải xuống. Tên địa điểm, nhà xe và thông tin khách hàng được giữ nguyên.", "Applies to the interface, notifications, email and downloaded tickets. Place names, operators and customer information remain unchanged.")</p>
+    <form method="post" class="form-grid">
+        <div asp-validation-summary="All" class="alert" role="alert"></div>
+        <div class="field">
+            <label asp-for="SelectedLanguage">@T("Ngôn ngữ", "Language")</label>
+            <select asp-for="SelectedLanguage">
+                <option value="vi-VN" lang="vi">Tiếng Việt</option>
+                <option value="en-US" lang="en">English</option>
+            </select>
+        </div>
+        <button class="button" type="submit">@T("Lưu cài đặt", "Save settings")</button>
+    </form>
+    <p class="muted">@T("Lựa chọn được lưu trên trình duyệt này và giữ nguyên sau khi tải lại, đăng nhập hoặc đăng xuất.", "Your choice is saved in this browser and kept after reloading, signing in or signing out.")</p>
+</section>

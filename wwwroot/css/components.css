@@ -1,0 +1,318 @@
+/* Account pages */
+.auth-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    max-width: 1100px;
+    margin: 12px auto 32px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    overflow: hidden;
+    background: var(--surface);
+}
+.auth-intro {
+    padding: 60px 46px;
+    color: var(--on-image);
+    background: linear-gradient(160deg, rgba(18, 62, 48, .96), rgba(18, 62, 48, .76)), url('/images/vietnam-bay.webp') center / cover;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+}
+.auth-intro .eyebrow { color: var(--lime); }
+.auth-intro h1 { color: var(--on-image); font-size: clamp(2.4rem, 4vw, 3.6rem); letter-spacing: -.055em; line-height: 1.14; margin: 14px 0 24px; }
+.auth-intro > p:not(.eyebrow) { color: var(--image-muted); max-width: 34ch; line-height: 1.8; }
+.auth-intro > a { color: var(--lime); font-size: .875rem; font-weight: 700; margin-top: 30px; }
+.auth-highlights { list-style: none; padding: 0; margin: 26px 0 0; counter-reset: auth-step; }
+.auth-highlights li { counter-increment: auth-step; display: flex; align-items: center; gap: 12px; margin: 18px 0; font-size: .875rem; }
+.auth-highlights li::before { content: '0' counter(auth-step); color: var(--lime); font-size: .72rem; letter-spacing: .08em; border: 1px solid #789184; border-radius: 50%; width: 29px; height: 29px; display: grid; place-items: center; flex: 0 0 auto; }
+.auth-layout .auth-card { border: 0; border-radius: 0; margin: 0; padding: 48px; align-content: center; }
+.auth-card h2 { font-size: 1.8rem; letter-spacing: -.04em; margin-bottom: 10px; }
+.auth-card .form-grid, .profile-grid .form-grid, .passenger-panel .form-grid { grid-template-columns: minmax(0, 1fr); }
+.auth-card form { margin-top: 28px; }
+.auth-card .field, .profile-grid .field, .passenger-panel .field { margin: 0; }
+.auth-card .field small { display: block; margin-top: 8px; line-height: 1.6; }
+.auth-card .button { width: 100%; margin-top: 4px; }
+.auth-switch { border-top: 1px solid var(--line); margin: 26px 0 0; padding-top: 22px; color: var(--muted); font-size: .875rem; }
+.auth-switch a { font-weight: 750; }
+.profile-grid { align-items: start; }
+.profile-grid .form-grid { margin-top: 24px; }
+.profile-grid .button { justify-self: start; }
+
+/* Booking and the native, keyboard-operable seat selector */
+.back-link { display: inline-flex; align-items: center; min-height: 40px; font-size: .875rem; font-weight: 650; }
+.booking-steps { list-style: none; padding: 0; display: flex; margin: 0 0 28px; border-bottom: 1px solid var(--line); }
+.booking-steps li { display: flex; flex: 1; gap: 12px; align-items: center; padding: 16px 12px 18px 0; color: var(--muted); font-size: .875rem; border-bottom: 2px solid transparent; }
+.booking-steps li > span { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--surface-hover); font-size: .7rem; font-weight: 750; flex: 0 0 auto; }
+.booking-steps .is-current { color: var(--green); border-bottom-color: var(--green); font-weight: 750; }
+.booking-steps .is-current > span { background: var(--action-bg); color: var(--on-action); }
+.booking-steps .is-complete > span { background: var(--lime); color: #123e30; }
+.booking-route { display: flex; justify-content: space-between; gap: 28px; align-items: center; }
+.booking-route h2 { margin: 14px 0 10px; font-size: 1.6rem; }
+.booking-route p { margin: 8px 0; }
+.booking-fare { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-left: 28px; border-left: 1px solid var(--line); flex-shrink: 0; }
+.booking-fare strong { font-size: 1.7rem; color: var(--green); letter-spacing: -.035em; }
+.booking-fare .muted { font-size: .78rem; }
+.booking-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 24px; align-items: start; }
+.section-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.section-heading h2 { margin: 0; }
+.section-heading a { font-size: .8rem; font-weight: 700; }
+.seat-legend { display: flex; flex-wrap: wrap; gap: 18px; margin: 22px 0; font-size: .75rem; color: var(--muted); }
+.seat-legend > span { display: inline-flex; align-items: center; gap: 7px; }
+.seat-legend i { width: 16px; height: 16px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--surface); }
+.seat-legend .selected { background: var(--action-bg); border-color: var(--action-bg); }
+.seat-legend .unavailable { background: var(--seat-unavailable); border-color: var(--control-border); }
+.bus-cabin { border: 1px solid var(--line); border-radius: 26px 26px 14px 14px; background: var(--surface-subtle); padding: 24px; max-width: 440px; min-width: 0; margin: 24px auto 0; }
+.bus-cabin legend { padding: 0 10px; font-size: .75rem; font-weight: 700; color: var(--muted); text-align: center; }
+.cabin-caption { text-align: center; font-size: .72rem; color: var(--muted); margin: 0 0 24px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.seat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.seat { position: relative; min-width: 0; min-height: 80px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 1px; padding: 23px 4px 8px; background: var(--surface); border: 1px solid var(--border-strong); border-bottom-width: 4px; border-radius: 9px; cursor: pointer; color: var(--ink); }
+.seat input[type='checkbox'] { position: absolute; top: 7px; right: 7px; width: 13px; height: 13px; padding: 0; margin: 0; accent-color: var(--action-bg); cursor: inherit; }
+.seat > span { font-size: 1rem; font-weight: 800; line-height: 1.4; }
+.seat small { font-size: .58rem; white-space: nowrap; }
+.seat:not(.booked):not(:has(input:checked)):hover { border-color: var(--green); background: var(--surface-hover); }
+.seat:has(input:checked) { color: var(--on-action); border-color: var(--action-hover); background: var(--action-bg); }
+.seat:has(input:checked) small { color: var(--on-action); }
+.seat:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 3px; }
+.seat.booked { color: var(--muted); background: var(--seat-unavailable); border-color: var(--line); cursor: not-allowed; }
+.seat.booked > span { text-decoration: line-through; }
+.passenger-panel h2 { margin-bottom: 26px; }
+.passenger-panel .notice { margin: 0; }
+.form-note { color: var(--muted); font-size: .75rem; text-align: center; margin: 0; }
+.booking-review { max-width: 860px; margin-inline: auto; }
+.review-details { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 28px 0; }
+.review-details dt { font-size: .8rem; color: var(--muted); }
+.review-details dd { margin: 5px 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.booking-total { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.booking-total strong { color: var(--green); font-size: 1.8rem; }
+.notice { padding: 16px 18px; border-left: 3px solid var(--accent-border); border-radius: 0 9px 9px 0; margin: 18px 0; background: var(--accent-soft); color: var(--green-dark); font-size: .85rem; line-height: 1.75; }
+
+/* Journey lists and boarding passes */
+.ticket-tabs { display: flex; flex-wrap: wrap; gap: 8px 24px; border-bottom: 1px solid var(--line); margin: 0 0 28px; }
+.ticket-tabs a { padding: 12px 0; border-bottom: 2px solid transparent; font-size: .875rem; font-weight: 650; color: var(--muted); }
+.ticket-tabs a[aria-current='page'] { color: var(--green); border-bottom-color: var(--green); }
+.journey-list { align-items: stretch; }
+.journey-card { display: flex; flex-direction: column; min-width: 0; }
+.journey-card h2, .journey-card h3 { font-size: 1.3rem; letter-spacing: -.025em; margin: 8px 0 12px; }
+.journey-card > p { margin: 8px 0; }
+.journey-card .departure-time { margin-top: 24px; }
+.journey-card-top, .journey-card-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
+.journey-card-top { padding-bottom: 16px; border-bottom: 1px dashed var(--line); }
+.journey-card-top .ticket-code { font-size: .78rem; color: var(--muted); }
+.journey-card-bottom { padding-top: 20px; margin-top: auto; border-top: 1px solid var(--line); }
+.journey-card .journey-payment { font-size: .82rem; padding-bottom: 18px; }
+.departure-time { font-size: .875rem; font-weight: 750; color: var(--green); }
+.route-stops { color: var(--muted); font-size: .8rem; line-height: 1.75; }
+.price { color: var(--green); font-weight: 800; font-size: 1.15rem; }
+.badge.status-pending { background: var(--warning-bg); color: var(--warning-ink); }
+.badge.status-paid { background: var(--success-bg); color: var(--success-ink); }
+.badge.status-cancelled { background: var(--danger-bg); color: var(--danger-ink); }
+.ticket-code { font-family: Consolas, monospace; letter-spacing: .045em; overflow-wrap: anywhere; }
+.ticket-card { border-top: 5px solid var(--green); overflow: hidden; }
+.ticket-card.ticket-pending { border-top-color: light-dark(#c59638, #efd08b); }
+.ticket-card.ticket-cancelled { border-top-color: light-dark(#b57b6e, #ffb5a8); }
+.ticket-card.ticket-used { border-top-color: var(--muted); }
+.ticket-header { display: flex; justify-content: space-between; gap: 24px; border-bottom: 1px dashed var(--border-strong); padding-bottom: 24px; margin-bottom: 24px; }
+.ticket-header h2 { font-size: clamp(1.5rem, 3vw, 2rem); margin: 10px 0 16px; letter-spacing: -.035em; }
+.ticket-reference { font-size: .8rem; color: var(--muted); margin: 0; }
+.ticket-reference strong { color: var(--ink); margin-left: 8px; }
+.ticket-status { flex-shrink: 0; text-align: right; }
+.ticket-status p { font-size: .8rem; color: var(--muted); margin: 10px 0 0; }
+.ticket-boarding-note { padding: 14px 18px; border-radius: 8px; background: var(--accent-soft); color: var(--green); }
+.ticket-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 8px 0 24px; }
+.ticket-meta dl { margin: 0; min-width: 0; align-content: start; align-items: baseline; gap: 18px 16px; }
+.ticket-meta dt { font-size: .75rem; color: var(--muted); margin: 0; }
+.ticket-meta dd { margin: 0; overflow-wrap: anywhere; font-size: .95rem; font-weight: 650; }
+.ticket-meta .ticket-seat-number, .ticket-meta .ticket-amount { font-size: 1.5rem; color: var(--green); font-weight: 800; }
+.ticket-seat-number small { font-size: .8rem; color: var(--muted); font-weight: 500; }
+.ticket-qr { display: flex; align-items: center; gap: 24px; border-top: 1px dashed var(--border-strong); padding-top: 24px; }
+.ticket-qr img { flex: 0 0 auto; object-fit: contain; background: #fff; }
+.ticket-qr .muted { font-size: .85rem; }
+.payment-panel { border-left: 4px solid light-dark(#c59638, #efd08b); }
+.payment-instructions { align-items: center; margin-top: 26px; }
+.payment-qr { padding: 20px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-subtle); text-align: center; }
+.payment-qr img { display: block; max-width: 100%; height: auto; margin: auto; background: #fff; }
+.ticket-management > form { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 24px; }
+
+/* Operator directory and route reference pages */
+.company-directory { align-items: stretch; }
+.company-card { display: flex; flex-direction: column; min-width: 0; }
+.company-logo { display: grid; place-items: center; background: var(--accent-soft); color: var(--green-dark); border: 1px solid var(--accent-border); border-radius: 14px; width: 64px; min-height: 64px; padding: 8px; font-size: 1rem; font-weight: 800; overflow-wrap: anywhere; text-align: center; margin-bottom: 28px; }
+.company-card .eyebrow { font-size: .65rem; }
+.company-card h2 { font-size: 1.35rem; margin: 8px 0 24px; }
+.company-card .muted { font-size: .75rem; margin: 0; }
+.company-area { margin: 5px 0 28px; }
+.company-card .button { margin-top: auto; justify-content: space-between; }
+.directory-note { padding-top: 18px; color: var(--muted); font-size: .8rem; max-width: 90ch; }
+.company-profile .company-logo { width: 80px; min-height: 80px; margin: 0; }
+.company-filter { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; }
+.company-filter > div { max-width: 430px; }
+.company-filter .actions { align-items: flex-end; margin: 0; }
+.company-filter .field { margin: 0; }
+.company-filter .actions > a { font-size: .8rem; }
+.guide-heading > div { max-width: 780px; }
+.guide-label { padding: 9px 16px; border: 1px solid var(--accent-border); border-radius: 100px; background: var(--accent-soft); color: var(--green); font-size: .78rem; font-weight: 700; white-space: nowrap; }
+.guide-notice { margin-bottom: 28px; }
+.guide-grid { counter-reset: guide; }
+.guide-grid > article { counter-increment: guide; display: flex; flex-direction: column; position: relative; padding-top: 34px; overflow: hidden; }
+.guide-grid > article::before { content: '0' counter(guide); font-size: 3.3rem; font-weight: 800; color: var(--line); position: absolute; top: 8px; right: 24px; pointer-events: none; line-height: 1; }
+.guide-grid .eyebrow { padding-right: 60px; position: relative; font-size: .7rem; }
+.guide-grid h2 { font-size: 1.5rem; margin-top: 12px; }
+.guide-grid article > p:not(.eyebrow) { font-size: .875rem; line-height: 1.85; }
+.guide-grid article > .muted { font-size: .75rem; padding-top: 8px; }
+.guide-grid .actions { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--line); }
+.guide-grid .actions > a { font-size: .8rem; }
+.guide-cta { display: flex; align-items: center; justify-content: space-between; gap: 28px; margin-top: 32px; background: var(--accent-soft); border-color: var(--accent-border); }
+.guide-cta > div { max-width: 750px; }
+.guide-cta p { font-size: .875rem; }
+.guide-cta .button { flex-shrink: 0; }
+
+/* Native FAQ details */
+.help-layout { display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr); gap: 64px; align-items: start; margin-top: 38px; }
+.help-sidebar { padding: 30px; background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: var(--radius); }
+.help-sidebar h2 { font-size: 1.65rem; }
+.help-sidebar > p:not(.eyebrow) { color: var(--muted); font-size: .875rem; line-height: 1.85; }
+.help-sidebar > .button { margin: 14px 0 28px; }
+.help-disclosure { border-top: 1px solid var(--accent-border); padding-top: 24px; font-size: .8rem; line-height: 1.8; }
+.help-disclosure p { margin-bottom: 0; color: var(--muted); }
+.faq-list h2 { font-size: 1.7rem; margin-bottom: 28px; }
+.faq-list details { border-bottom: 1px solid var(--line); }
+.faq-list summary { cursor: pointer; padding: 23px 32px 23px 0; font-size: .95rem; font-weight: 750; list-style: none; position: relative; }
+.faq-list summary::-webkit-details-marker { display: none; }
+.faq-list summary::after { content: '+'; position: absolute; right: 4px; top: 20px; font-size: 1.3rem; font-weight: 500; color: var(--green); }
+.faq-list details[open] summary::after { content: '−'; }
+.faq-list summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
+.faq-list details > div { color: var(--muted); padding: 0 24px 20px 0; font-size: .875rem; line-height: 1.85; }
+.faq-list details > div p:first-child { margin-top: 0; }
+
+@media (max-width: 1000px) {
+    .auth-intro { padding: 38px 32px; }
+    .auth-layout .auth-card { padding: 36px 30px; }
+    .booking-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+    .help-layout { gap: 32px; }
+    .company-filter { align-items: stretch; flex-direction: column; }
+    .guide-cta { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 760px) {
+    .auth-layout { grid-template-columns: minmax(0, 1fr); }
+    .auth-intro { padding: 34px; }
+    .auth-intro h1 { font-size: 2.4rem; }
+    .auth-intro > p:not(.eyebrow) { max-width: none; }
+    .auth-highlights { display: none; }
+    .auth-intro > a { margin-top: 12px; }
+    .booking-layout, .help-layout { grid-template-columns: minmax(0, 1fr); }
+    .booking-route { align-items: flex-start; flex-direction: column; gap: 16px; }
+    .booking-fare { align-items: flex-start; border-left: 0; border-top: 1px solid var(--line); padding: 18px 0 0; width: 100%; }
+    .booking-fare strong { font-size: 1.5rem; }
+    .booking-steps li { gap: 8px; font-size: .73rem; align-items: flex-start; flex-direction: column; }
+    .guide-label { display: none; }
+    .help-layout { margin-top: 24px; }
+    .help-sidebar { padding: 24px; }
+    .help-sidebar > .button { margin-bottom: 18px; }
+}
+@media (max-width: 480px) {
+    .auth-layout { border-radius: 16px; margin-top: 0; }
+    .auth-intro { padding: 28px 24px; }
+    .auth-layout .auth-card { padding: 28px 24px; }
+    .bus-cabin { padding: 20px 12px; }
+    .seat-grid { gap: 8px; }
+    .seat { min-height: 76px; }
+    .seat-legend { gap: 12px; font-size: .7rem; }
+    .section-heading { align-items: flex-start; flex-direction: column; gap: 6px; }
+    .ticket-header { flex-direction: column; gap: 18px; }
+    .ticket-status { text-align: left; }
+    .ticket-status p { display: inline; margin-left: 8px; }
+    .ticket-meta, .review-details { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    .review-details { gap: 18px; }
+    .ticket-qr { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .ticket-tabs { column-gap: 16px; }
+    .ticket-tabs a { font-size: .76rem; }
+    .booking-total { align-items: flex-start; flex-direction: column; gap: 8px; }
+    .company-profile .company-logo { display: none; }
+    .company-filter .actions { align-items: stretch; flex-direction: column; }
+    .company-filter .actions .field { width: 100%; }
+    .guide-grid .actions { align-items: flex-start; flex-direction: column; }
+}
+/* Staff counter hints on search page */
+.staff-counter-hints { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; }
+.staff-counter-hints a { font-size: .82rem; font-weight: 600; }
+.settings-card { max-width: 760px; }
+.settings-card .form-grid { grid-template-columns: minmax(0, 1fr); max-width: 420px; }
+.settings-card .button { justify-self: start; }
+.settings-card > p:last-child { margin-top: 24px; font-size: .85rem; }
+@media print {
+    .ticket-card { border-top: 3px solid #19382e; }
+    .ticket-meta { grid-template-columns: 1fr 1fr; }
+    .ticket-qr { flex-direction: row; }
+    .ticket-qr img { width: 140px; height: 140px; }
+    .payment-panel, .ticket-tabs, .back-link, .booking-steps { display: none !important; }
+}
+
+/* Membership ranks and persistent offer announcements */
+.membership-tier { display: inline-flex; align-items: center; max-width: 100%; padding: 6px 12px; border: 1px solid transparent; border-radius: 8px; font-size: .9rem; font-weight: 800; line-height: 1.5; overflow-wrap: anywhere; }
+.membership-tier-standard { color: light-dark(#46584e, #c0d0c6); background: light-dark(#edf1ee, #29372f); border-color: light-dark(#d8e0db, #52685a); }
+.membership-tier-bronze { color: light-dark(#7a461e, #efbc90); background: light-dark(#f6e7d7, #3d2c20); border-color: light-dark(#ddba96, #886043); }
+.membership-tier-silver { color: light-dark(#435364, #cfdae7); background: light-dark(#e9edf2, #2c3540); border-color: light-dark(#bdc8d6, #66788b); }
+.membership-tier-gold { color: light-dark(#725310, #f2d47d); background: light-dark(#fff1c7, #3d331b); border-color: light-dark(#dec46e, #8c7741); }
+.membership-tier-diamond { color: light-dark(#24566d, #a9dff3); background: light-dark(#def2fa, #203943); border-color: light-dark(#8fc4d8, #477e93); }
+.membership-summary { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 40px; }
+.membership-summary h2 { margin-bottom: 18px; }
+.membership-summary h2 .membership-tier { font-size: 1.35rem; padding: 8px 16px; }
+.membership-spend { display: flex; flex-direction: column; gap: 4px; }
+.membership-spend strong { font-size: clamp(1.5rem, 3vw, 2rem); color: var(--green); overflow-wrap: anywhere; }
+.membership-spend span, .membership-summary .muted { font-size: .85rem; }
+.membership-next { min-width: 0; padding-left: 32px; border-left: 1px solid var(--line); }
+.membership-progress { display: block; width: 100%; height: 12px; border: 0; border-radius: 8px; overflow: hidden; background: var(--line); accent-color: var(--green); margin: 16px 0 10px; }
+.membership-progress::-webkit-progress-bar { background: var(--line); border-radius: 8px; }
+.membership-progress::-webkit-progress-value { background: var(--green); border-radius: 8px; }
+.membership-progress::-moz-progress-bar { background: var(--green); border-radius: 8px; }
+.membership-notification-link { display: inline-block; font-size: .8rem; font-weight: 700; overflow-wrap: anywhere; }
+.membership-section { margin-top: 34px; }
+.membership-tier-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.membership-tier-card { min-width: 0; padding: 20px; margin-bottom: 0; }
+.membership-tier-card h3 { margin-bottom: 16px; }
+.membership-tier-card p { font-size: .8rem; line-height: 1.75; }
+.membership-tier-card.is-current { border: 2px solid var(--green); padding: 19px; }
+.membership-current-label { display: block; font-size: .75rem; color: var(--green); }
+.membership-rules p { margin: 0; }
+.membership-rules p + p { margin-top: 10px; }
+.membership-offer-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.membership-offer-heading h2, .membership-offer-heading h3 { min-width: 0; margin-bottom: 14px; overflow-wrap: anywhere; }
+.membership-offer-heading h2 { font-size: 1.35rem; }
+.membership-offer-percent { flex-shrink: 0; color: var(--green); font-size: 1.5rem; white-space: nowrap; }
+.membership-dates { display: flex; flex-wrap: wrap; gap: 12px 30px; margin: 20px 0; font-size: .82rem; }
+.membership-dates > div { min-width: 0; }
+.membership-dates dt { color: var(--muted); margin-bottom: 4px; }
+.membership-dates dd { margin: 0; font-weight: 650; overflow-wrap: anywhere; }
+.membership-offer > .muted { font-size: .82rem; margin-bottom: 0; }
+.membership-notification-toolbar { display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 20px; }
+.membership-notification-toolbar p, .membership-notification-toolbar form { margin: 0; }
+.membership-notification { border-left: 4px solid var(--line); }
+.membership-notification.is-unread { border-left-color: var(--green); background: var(--accent-soft); }
+.membership-notification-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: .8rem; }
+.membership-notification-meta .membership-tier { font-size: .75rem; padding: 3px 9px; }
+.membership-notification > .muted { font-size: .82rem; }
+.membership-offer-availability { font-size: .85rem; }
+.membership-read-at { margin-bottom: 0; }
+.membership-home-stat > a:first-child { display: block; color: inherit; }
+.membership-home-stat strong.membership-tier { display: inline-flex; font-size: 1rem; letter-spacing: 0; }
+.membership-home-stat small { display: block; color: var(--muted); font-size: .75rem; line-height: 1.7; margin-top: 8px; }
+.membership-home-stat .membership-progress { margin: 10px 0; height: 8px; }
+.membership-home-stat .membership-notification-link { margin-top: 10px; }
+@media (max-width: 1100px) {
+    .membership-tier-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+    .membership-summary { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    .membership-next { padding: 22px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+    .membership-tier-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .membership-tier-card { padding: 16px; }
+    .membership-tier-card.is-current { padding: 15px; }
+}
+@media (max-width: 480px) {
+    .membership-home-stat { grid-column: 1 / -1; }
+    .membership-tier-grid { grid-template-columns: minmax(0, 1fr); }
+    .membership-notification-toolbar { align-items: flex-start; flex-direction: column; }
+    .membership-offer-heading { flex-wrap: wrap; gap: 0 14px; }
+    .membership-offer-heading h2, .membership-offer-heading h3 { flex: 1 1 160px; }
+}

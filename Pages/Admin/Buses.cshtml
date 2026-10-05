@@ -1,0 +1,60 @@
+@page
+@model BusGo.Pages.Admin.BusesModel
+@{ ViewData["Title"] = T("Đội xe và nhà xe", "Fleet & operators"); }
+<header class="page-header"><div><p class="eyebrow">@T("Đăng ký đội xe", "Fleet registry")</p><h1>@T("Đội xe và nhà xe", "Fleet & operators")</h1><p class="muted">@T("Đăng ký xe, hồ sơ nhà xe, giấy tờ pháp lý và giờ khởi hành định kỳ.", "Register vehicles, operator profiles, legal documents and recurring departures.")</p></div></header>
+<partial name="_AdminValidation" />
+<datalist id="companies">@foreach(var c in Model.Companies) { <option value="@c"></option> }</datalist>
+<datalist id="bus-types"><option value="Limousine">@Value("Limousine")</option><option value="Ghế ngồi">@Value("Ghế ngồi")</option><option value="Ghế nằm">@Value("Ghế nằm")</option><option value="Cabin">@Value("Cabin")</option></datalist>
+<datalist id="operation-types"><option value="Tuyến cố định">@Value("Tuyến cố định")</option><option value="Hợp đồng">@Value("Hợp đồng")</option><option value="Du lịch">@Value("Du lịch")</option></datalist>
+<section class="card"><h2>@(Model.Editing ? T("Sửa đăng ký xe", "Edit vehicle registration") : T("Đăng ký xe", "Register vehicles"))</h2><p class="muted">@T("Thêm nhiều bản nháp xe và lưu cùng lúc. Mỗi xe được lưu độc lập; nếu có lỗi, chỉ giữ lại bản nháp chưa lưu. Bản nháp chưa được lưu trữ cho đến khi bạn lưu.", "Add multiple vehicle drafts and save together. Each vehicle is saved independently; if one fails, only the unsaved drafts remain. Drafts are not stored until you save.")</p>
+<form method="post" asp-page-handler="Save">
+@for(var i = 0; i < Model.Vehicles.Count; i++) {
+<fieldset class="card"><legend>@T("Xe", "Vehicle") @(i + 1) @(Model.Vehicles[i].Id > 0 ? $"· #{Model.Vehicles[i].Id}" : T("· bản nháp mới", "· new draft"))</legend><input type="hidden" asp-for="Vehicles[i].Id" />
+<h3>@T("Hồ sơ nhà xe", "Operator profile")</h3><div class="form-grid">
+<div class="field"><label asp-for="Vehicles[i].CompanyName">@T("Tên nhà xe / công ty", "Operator / company name")</label><input asp-for="Vehicles[i].CompanyName" list="companies" /><span asp-validation-for="Vehicles[i].CompanyName"></span><button type="submit" class="button secondary" asp-page-handler="Company" asp-route-index="@i" formnovalidate>@T("Tải hồ sơ nhà xe hiện có", "Load existing operator profile")</button></div>
+<div class="field"><label asp-for="Vehicles[i].Hotline">@T("Đường dây nóng nhà xe", "Operator hotline")</label><input asp-for="Vehicles[i].Hotline" /></div>
+<div class="field"><label asp-for="Vehicles[i].OperatingArea">@T("Khu vực hoạt động", "Operating area")</label><input asp-for="Vehicles[i].OperatingArea" /></div>
+<div class="field"><label asp-for="Vehicles[i].RegisteredEntity">@T("Pháp nhân đăng ký", "Registered legal entity")</label><input asp-for="Vehicles[i].RegisteredEntity" /></div>
+<div class="field"><label asp-for="Vehicles[i].Description">@T("Mô tả nhà xe", "Operator description")</label><textarea asp-for="Vehicles[i].Description"></textarea></div>
+<div class="field"><label asp-for="Vehicles[i].Amenities">@T("Tiện ích", "Amenities")</label><textarea asp-for="Vehicles[i].Amenities"></textarea></div>
+</div><h3>@T("Xe và tài xế", "Vehicle and driver")</h3><div class="form-grid">
+<div class="field"><label asp-for="Vehicles[i].LicensePlate">@T("Biển số", "License plate")</label><input asp-for="Vehicles[i].LicensePlate" /><span asp-validation-for="Vehicles[i].LicensePlate"></span></div>
+<div class="field"><label asp-for="Vehicles[i].SeatCount">@T("Số chỗ (1–200)", "Number of seats (1–200)")</label><input asp-for="Vehicles[i].SeatCount" min="1" max="200" /><span asp-validation-for="Vehicles[i].SeatCount"></span></div>
+<div class="field"><label asp-for="Vehicles[i].BusType">@T("Loại xe", "Bus type")</label><input asp-for="Vehicles[i].BusType" list="bus-types" /></div>
+<div class="field"><label asp-for="Vehicles[i].Make">@T("Hãng xe", "Make")</label><input asp-for="Vehicles[i].Make" /></div>
+<div class="field"><label asp-for="Vehicles[i].Model">@T("Dòng xe", "Model")</label><input asp-for="Vehicles[i].Model" /></div>
+<div class="field"><label asp-for="Vehicles[i].ManufactureYear">@T("Năm sản xuất", "Manufacture year")</label><input asp-for="Vehicles[i].ManufactureYear" /></div>
+<div class="field"><label asp-for="Vehicles[i].Color">@T("Màu sắc", "Color")</label><input asp-for="Vehicles[i].Color" /></div>
+<div class="field"><label asp-for="Vehicles[i].OperationType">@T("Loại hình hoạt động", "Operation type")</label><input asp-for="Vehicles[i].OperationType" list="operation-types" /></div>
+<div class="field"><label asp-for="Vehicles[i].DriverName">@T("Tên tài xế", "Driver name")</label><input asp-for="Vehicles[i].DriverName" /></div>
+<div class="field"><label asp-for="Vehicles[i].DriverPhone">@T("Điện thoại tài xế", "Driver phone")</label><input asp-for="Vehicles[i].DriverPhone" /></div>
+</div><h3>@T("Tuyến, điểm dừng và giá vé", "Route, stops and fares")</h3><div class="form-grid">
+<div class="field"><label asp-for="Vehicles[i].RouteId">@T("Tuyến được phân công", "Assigned route")</label><select asp-for="Vehicles[i].RouteId"><option value="">@T("Chưa phân tuyến / tạo tuyến bên dưới", "Unassigned / create a route below")</option>@foreach(var r in Model.Routes) { <option value="@r.RouteId">@r.DisplayName</option> }</select></div>
+<div class="field"><label asp-for="Vehicles[i].NewOrigin">@T("Điểm đi tuyến mới (không bắt buộc)", "New route origin (optional)")</label><input asp-for="Vehicles[i].NewOrigin" /></div>
+<div class="field"><label asp-for="Vehicles[i].NewDestination">@T("Điểm đến tuyến mới (không bắt buộc)", "New route destination (optional)")</label><input asp-for="Vehicles[i].NewDestination" /></div>
+<div class="field"><label asp-for="Vehicles[i].IntermediateStops">@T("Điểm dừng trung gian (cách nhau bằng dấu phẩy, theo thứ tự)", "Intermediate stops (comma-separated, in order)")</label><textarea asp-for="Vehicles[i].IntermediateStops"></textarea></div>
+<div class="field"><label asp-for="Vehicles[i].DepartureTimeNote">@T("Giờ khởi hành định kỳ", "Recurring departure times")</label><input asp-for="Vehicles[i].DepartureTimeNote" placeholder="06:30, 09:00, 14:30" /><span class="muted">@T("Định dạng 24 giờ HH:mm, cách nhau bằng dấu phẩy.", "24-hour HH:mm, separated by commas.")</span></div>
+<div class="field"><label asp-for="Vehicles[i].FarePrice">@T("Giá vé toàn tuyến (VND, không bắt buộc)", "Full-route fare (VND, optional)")</label><input asp-for="Vehicles[i].FarePrice" type="number" step="0.01" /></div>
+<div class="field"><label asp-for="Vehicles[i].StagePrice">@T("Giá vé chặng (VND, không bắt buộc)", "Stage fare (VND, optional)")</label><input asp-for="Vehicles[i].StagePrice" type="number" step="0.01" /></div>
+</div><p class="muted">@Format("Chọn tuyến hiện có hoặc để trống và nhập cả hai đầu để tạo tuyến. Tuyến mới phải phục vụ bến {0}. Phân tuyến sẽ lập chuyến trong 14 ngày tới bằng dịch vụ hiện có. Giờ trống / không nhận dạng dùng 07:30 và 14:00. Giá trống hoặc không dương dùng giá tuyến hiện có. Không thể giảm sức chứa qua ghế đã có lịch sử vé.", "Select an existing route, or leave it unassigned and enter both endpoints to create one. New routes must serve {0}. Assigning a route schedules departures for the next 14 days using the existing service. Blank / unrecognized departure times use 07:30 and 14:00. Blank or nonpositive fares use existing route pricing. Capacity cannot shrink across seats with ticket history.", Model.Station)</p>
+<h3>@T("Đăng ký, đăng kiểm và bảo hiểm", "Registration, inspection and insurance")</h3><div class="form-grid">
+<div class="field"><label asp-for="Vehicles[i].RegistrationNumber">@T("Số đăng ký", "Registration number")</label><input asp-for="Vehicles[i].RegistrationNumber" /></div>
+<div class="field"><label asp-for="Vehicles[i].RegistrationDate">@T("Ngày đăng ký", "Registration date")</label><input asp-for="Vehicles[i].RegistrationDate" type="date" /></div>
+<div class="field"><label asp-for="Vehicles[i].InspectionNumber">@T("Số đăng kiểm", "Inspection number")</label><input asp-for="Vehicles[i].InspectionNumber" /></div>
+<div class="field"><label asp-for="Vehicles[i].InspectionExpiryDate">@T("Hạn đăng kiểm", "Inspection expires")</label><input asp-for="Vehicles[i].InspectionExpiryDate" type="date" /></div>
+<div class="field"><label asp-for="Vehicles[i].InsuranceExpiryDate">@T("Hạn bảo hiểm", "Insurance expires")</label><input asp-for="Vehicles[i].InsuranceExpiryDate" type="date" /></div>
+</div>
+@if(!Model.Editing) { <button class="button danger" asp-page-handler="RemoveDraft" asp-route-index="@i" formnovalidate>@T("Xóa bản nháp này", "Remove this draft")</button> }
+</fieldset>
+}
+<div class="actions"><button>@(Model.Editing ? T("Lưu xe", "Save vehicle") : T("Lưu tất cả xe", "Save all vehicles"))</button>
+@if(!Model.Editing) { <button class="button secondary" asp-page-handler="Save" asp-route-continueAdding="true">@T("Lưu và đăng ký xe khác cho nhà xe này", "Save & register another for this operator")</button><button class="button secondary" asp-page-handler="AddDraft" formnovalidate>@T("Thêm bản nháp xe", "Add another vehicle draft")</button> }
+<a class="button secondary" asp-page="Buses">@T("Hủy / xóa bản nháp", "Cancel / clear drafts")</a></div></form></section>
+<form method="get" class="card"><h2>@T("Tìm xe", "Find vehicles")</h2><div class="form-grid"><div class="field"><label asp-for="Company">@T("Nhà xe", "Operator")</label><select asp-for="Company"><option value="">@T("Tất cả nhà xe", "All operators")</option>@foreach(var c in Model.Companies) { <option value="@c">@c</option> }</select></div><div class="field"><label asp-for="Search">@T("Biển số, tài xế, tuyến hoặc loại xe", "Plate, driver, route or bus type")</label><input asp-for="Search" /></div></div><button>@T("Lọc đội xe", "Filter fleet")</button></form>
+@if(Model.Loaded) {
+<section class="card"><h2>@Format("Đội xe đã đăng ký ({0})", "Registered fleet ({0})", Model.Buses.Count)</h2><div class="table-wrap"><table><thead><tr><th>@T("Xe", "Vehicle")</th><th>@T("Nhà xe / tài xế", "Operator / driver")</th><th>@T("Tuyến / giờ khởi hành", "Route / departures")</th><th>@T("Sức chứa / giá vé", "Capacity / fares")</th><th>@T("Đăng ký", "Registration")</th><th>@T("Thao tác", "Actions")</th></tr></thead><tbody>
+@foreach(var b in Model.Buses) {
+<tr><td><strong>@b.LicensePlate</strong><br />@Value(b.BusType)<br />@b.SpecsDisplay</td><td>@b.CompanyName<br />@Value(b.DriverName)<br />@b.DriverPhone</td><td>@b.RouteName<br />@Value(b.DepartureTimeNote)<details><summary>@T("Điểm dừng trung gian", "Intermediate stops")</summary>@b.IntermediateStops</details></td><td>@b.Availability<br />@b.FareDisplay</td><td>@b.LegalStatusDisplay<br />@b.RegisteredEntity<br />@Value(b.OperationType)<details><summary>@T("Ngày giấy tờ", "Document dates")</summary><p>@T("Đăng ký:", "Registered:") @b.RegistrationDate?.ToString("dd/MM/yyyy")</p><p>@T("Hạn đăng kiểm:", "Inspection expires:") @b.InspectionExpiryDate?.ToString("dd/MM/yyyy")</p><p>@T("Hạn bảo hiểm:", "Insurance expires:") @b.InsuranceExpiryDate?.ToString("dd/MM/yyyy")</p></details></td><td><a class="button secondary" asp-route-editId="@b.BusId">@T("Chỉnh sửa", "Edit")</a><form method="post" asp-page-handler="Delete" data-confirm="@T("Xóa xe này? Chuyến đang hoạt động và lịch sử vé có thể ngăn việc xóa.", "Delete this vehicle? Active trips and ticket history can prevent deletion.")"><input name="id" type="hidden" value="@b.BusId" /><input asp-for="Company" type="hidden" /><input asp-for="Search" type="hidden" /><button class="button danger">@T("Xóa", "Delete")</button></form></td></tr>
+}
+</tbody></table></div>@if(Model.Buses.Count == 0) { <p class="empty-state">@T("Không có xe phù hợp với bộ lọc.", "No vehicles match these filters.")</p> }</section>
+}

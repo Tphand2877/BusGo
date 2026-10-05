@@ -1,0 +1,158 @@
+@page
+@model BusGo.Pages.Admin.AccountsModel
+@{ ViewData["Title"] = T("Tài khoản", "Accounts"); }
+<header class="page-header"><div><p class="eyebrow">@T("Quản lý quyền truy cập", "Access management")</p><h1>@T("Tài khoản", "Accounts")</h1></div></header>
+<partial name="_AdminValidation" />
+<form method="get" class="card accounts-filter-card">
+    <div class="form-grid" style="grid-template-columns: minmax(0, 1.5fr) minmax(220px, 1fr); gap: 20px; align-items: end;">
+        <div class="field" style="margin-bottom: 0;">
+            <label asp-for="Search">@T("Tìm tên, tên đăng nhập, email hoặc điện thoại", "Search name, username, email or phone")</label>
+            <input asp-for="Search" placeholder="@T("Nhập từ khóa tìm kiếm...", "Enter search keyword...")" />
+        </div>
+        <div class="field" style="margin-bottom: 0;">
+            <label asp-for="RoleFilter">@T("Lọc theo vai trò (Tags)", "Filter by role tag")</label>
+            <select asp-for="RoleFilter" onchange="this.form.submit()">
+                <option value="">@T("Tất cả vai trò", "All roles")</option>
+                <option value="Owner">@T("Chủ sở hữu (Owner)", "Owner")</option>
+                <option value="Admin">@T("Quản trị viên (Administrator)", "Administrator")</option>
+                <option value="Customer">@T("Khách hàng (Customer)", "Customer")</option>
+            </select>
+        </div>
+    </div>
+    <div class="actions" style="margin-top: 18px;">
+        <button type="submit">@T("Tìm kiếm & Lọc", "Search & Filter")</button>
+        <a class="button secondary" asp-page="Accounts">@T("Xóa bộ lọc", "Clear")</a>
+        <div class="role-filter-pills" style="display: inline-flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap;">
+            <span class="muted" style="font-size: 12px; font-weight: 650;">@T("Xem theo tag:", "Quick filter:")</span>
+            <a class="badge" asp-page="Accounts" asp-route-Search="@Model.Search" style="cursor: pointer; text-decoration: none; @(string.IsNullOrEmpty(Model.RoleFilter) ? "outline: 2px solid var(--green); outline-offset: 2px;" : "")">@T("Tất cả", "All")</a>
+            <a class="badge" asp-page="Accounts" asp-route-RoleFilter="Owner" asp-route-Search="@Model.Search" style="cursor: pointer; text-decoration: none; background: light-dark(#fef3c7, #451a03); color: light-dark(#b45309, #fcd34d); @(Model.RoleFilter == "Owner" ? "outline: 2px solid #b45309; outline-offset: 2px;" : "")">Owner</a>
+            <a class="badge" asp-page="Accounts" asp-route-RoleFilter="Admin" asp-route-Search="@Model.Search" style="cursor: pointer; text-decoration: none; background: light-dark(#e0f2fe, #082f49); color: light-dark(#0369a1, #7dd3fc); @(Model.RoleFilter == "Admin" ? "outline: 2px solid #0369a1; outline-offset: 2px;" : "")">Administrator</a>
+            <a class="badge" asp-page="Accounts" asp-route-RoleFilter="Customer" asp-route-Search="@Model.Search" style="cursor: pointer; text-decoration: none; @(Model.RoleFilter == "Customer" ? "outline: 2px solid var(--green); outline-offset: 2px;" : "")">Customer</a>
+        </div>
+    </div>
+</form>
+@if(Model.Loaded) {
+<section class="card"><div class="table-wrap"><table><thead><tr><th>@T("Tài khoản", "Account")</th><th>@T("Liên hệ", "Contact")</th><th>@T("Vai trò", "Role")</th><th>@T("Ngày tạo", "Created")</th><th>@T("Thao tác", "Actions")</th></tr></thead><tbody>
+@foreach(var a in Model.Accounts) {
+<tr>
+    <td><strong>@a.FullName</strong><br />@a.Username (#@a.AccountId)</td>
+    <td>@a.Email<br />@a.Phone</td>
+    <td>
+        @if (a.Role == "Owner")
+        {
+            <span class="badge" style="background: light-dark(#fef3c7, #451a03); color: light-dark(#b45309, #fcd34d);">@T("Chủ sở hữu (Owner)", "Owner")</span>
+        }
+        else if (a.Role == "Admin")
+        {
+            <span class="badge" style="background: light-dark(#e0f2fe, #082f49); color: light-dark(#0369a1, #7dd3fc);">@T("Quản trị viên (Admin)", "Administrator")</span>
+        }
+        else
+        {
+            <span class="badge">@Value(a.Role)</span>
+        }
+    </td>
+    <td>@a.CreatedAt.ToString("dd/MM/yyyy")</td>
+    <td>
+    @{
+        bool isPrivilegedTarget = a.Role is "Admin" or "Owner";
+        bool canManageTarget = Model.ViewerIsOwner || !isPrivilegedTarget;
+    }
+    @if (a.AccountId == Model.CurrentAccountId)
+    {
+        <p class="muted"><small>@T("Tài khoản của bạn — không thể tự đổi quyền hoặc xóa.", "Your account — self-role change and deletion are blocked.")</small></p>
+    }
+    else if (Model.ViewerIsOwner)
+    {
+        @if (a.Role == "Customer")
+        {
+            <details class="role-confirm-details" style="margin: 4px 0;">
+                <summary class="button secondary small">@T("Cấp quyền Quản trị viên", "Make Administrator")</summary>
+                <form method="post" asp-page-handler="Role" style="padding: 10px 0; margin-top: 6px;">
+                    <input type="hidden" name="id" value="@a.AccountId" />
+                    <input type="hidden" asp-for="Search" />
+                    <input type="hidden" asp-for="RoleFilter" />
+                    <input type="hidden" name="role" value="Admin" />
+                    <div class="field" style="margin-bottom: 8px;">
+                        <label style="font-size: 11px;">@T("Mật khẩu xác nhận của bạn (Owner)", "Your confirmation password (Owner)")</label>
+                        <input type="password" name="confirmPassword" placeholder="@T("Nhập mật khẩu Owner", "Enter Owner password")" required autocomplete="current-password" style="min-height: 38px; font-size: 12px;" />
+                    </div>
+                    <button class="button small">@T("Xác nhận cấp quyền Admin", "Confirm make Admin")</button>
+                </form>
+            </details>
+        }
+        else if (a.Role == "Admin")
+        {
+            <details class="role-confirm-details" style="margin: 4px 0;">
+                <summary class="button secondary small">@T("Gỡ quyền Quản trị viên", "Remove Administrator")</summary>
+                <form method="post" asp-page-handler="Role" style="padding: 10px 0; margin-top: 6px;">
+                    <input type="hidden" name="id" value="@a.AccountId" />
+                    <input type="hidden" asp-for="Search" />
+                    <input type="hidden" asp-for="RoleFilter" />
+                    <input type="hidden" name="role" value="Customer" />
+                    <div class="field" style="margin-bottom: 8px;">
+                        <label style="font-size: 11px;">@T("Mật khẩu xác nhận của bạn (Owner)", "Your confirmation password (Owner)")</label>
+                        <input type="password" name="confirmPassword" placeholder="@T("Nhập mật khẩu Owner", "Enter Owner password")" required autocomplete="current-password" style="min-height: 38px; font-size: 12px;" />
+                    </div>
+                    <button class="button danger small">@T("Xác nhận gỡ quyền Admin", "Confirm remove Admin")</button>
+                </form>
+            </details>
+        }
+    }
+
+    @if (canManageTarget)
+    {
+        <details><summary>@T("Đặt lại mật khẩu", "Reset password")</summary><form method="post" asp-page-handler="Password" data-confirm="@T("Đặt lại mật khẩu tài khoản này?", "Reset this account's password?")"><input type="hidden" name="id" value="@a.AccountId" /><input type="hidden" asp-for="Search" /><input type="hidden" asp-for="RoleFilter" /><label>@T("Mật khẩu mới", "New password")<input name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="128" /></label><p class="muted">@T("8–128 ký tự gồm chữ hoa, chữ thường và chữ số.", "8–128 characters including uppercase, lowercase and a digit.")</p><button class="button small">@T("Đặt lại mật khẩu", "Reset password")</button></form></details>
+        @if (a.AccountId != Model.CurrentAccountId)
+        {
+            <form method="post" asp-page-handler="Delete" data-confirm="@T("Xóa vĩnh viễn tài khoản này? Lịch sử vé/thanh toán có thể ngăn việc xóa.", "Permanently delete this account? Existing ticket/payment history may prevent deletion.")" style="display:inline-block; margin-top: 4px;"><input type="hidden" name="id" value="@a.AccountId" /><input type="hidden" asp-for="Search" /><input type="hidden" asp-for="RoleFilter" /><button class="button danger small">@T("Xóa tài khoản", "Delete account")</button></form>
+        }
+    }
+    else if (a.AccountId != Model.CurrentAccountId)
+    {
+        <p class="muted" style="margin: 4px 0;"><small>@T("Chỉ Chủ sở hữu (Owner) mới có quyền quản lý tài khoản này.", "Only Owner can manage this privileged account.")</small></p>
+    }
+    </td>
+</tr>
+}
+</tbody></table></div>@if(Model.Accounts.Count == 0) { <p class="empty-state">@T("Không có tài khoản phù hợp.", "No matching accounts.")</p> }</section>
+
+@if (Model.ViewerIsOwner && Model.RecentRoleLogs.Count > 0)
+{
+<section class="card" aria-labelledby="role-audit-heading" style="margin-top: 24px;">
+    <div class="page-header" style="margin-bottom: 16px;">
+        <div>
+            <p class="eyebrow">@T("BẢO MẬT & KIỂM TOÁN", "SECURITY & AUDIT")</p>
+            <h2 id="role-audit-heading" style="font-size: 18px;">@T("Nhật ký thay đổi quyền (AuditLogs)", "Role change audit logs (AuditLogs)")</h2>
+            <p class="muted" style="font-size: 12px;">@T("Ghi nhận các lần cấp, gỡ hoặc từ chối cấp quyền Quản trị viên theo thời gian thực.", "Records every administrator role grant, revocation, or rejection in real time.")</p>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>@T("Thời gian (UTC)", "Time (UTC)")</th>
+                    <th>@T("Người thực hiện", "Actor")</th>
+                    <th>@T("Tài khoản đích", "Target")</th>
+                    <th>@T("Hành động", "Action")</th>
+                    <th>@T("Vai trò cũ", "Old role")</th>
+                    <th>@T("Vai trò mới", "New role")</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var log in Model.RecentRoleLogs)
+            {
+                <tr>
+                    <td>@log.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                    <td><strong>@(log.ActorUsername ?? "(Hệ thống)")</strong> @(log.ActorId.HasValue ? $"({log.ActorId})" : "")</td>
+                    <td>@log.TargetUsername (#@log.TargetId)</td>
+                    <td><span class="badge @(log.Action.StartsWith("RoleChangeRejected") ? "status-cancelled" : "status-paid")">@log.Action</span></td>
+                    <td>@(log.OldValue ?? "-")</td>
+                    <td><strong>@(log.NewValue ?? "-")</strong></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+}
+}

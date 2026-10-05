@@ -1,0 +1,51 @@
+@page
+@model BusGo.Pages.Customer.NotificationsModel
+@{ ViewData["Title"] = T("Thông báo ưu đãi", "Offer notifications"); }
+
+<div class="page-header">
+    <div><p class="eyebrow">@T("ƯU ĐÃI THÀNH VIÊN", "MEMBER OFFERS")</p><h1>@T("Thông báo ưu đãi", "Offer notifications")</h1><p class="muted">@T("Hiển thị 100 thông báo mới nhất của tài khoản bạn. Thông báo được giữ lại kể cả khi ưu đãi kết thúc hoặc hạng của bạn thay đổi.", "Showing your account's newest 100 notifications. Announcements are retained even when an offer ends or your tier changes.")</p></div>
+    <a class="button secondary" asp-page="Membership">@T("Hạng & quyền lợi", "Tier & benefits")</a>
+</div>
+@if (Model.Error is not null) { <div class="alert" role="alert">@Model.Error</div> }
+@if (Model.Error is null && Model.Overview is { } membership)
+{
+    <div class="membership-notification-toolbar">
+        <p>@Format("Hạng hiện tại: {0} · Chưa đọc: {1}", "Current tier: {0} · Unread: {1}", membership.CurrentTier.DisplayName, membership.UnreadNotifications.ToString("N0"))</p>
+        @if (membership.UnreadNotifications > 0)
+        {
+            <form method="post" asp-page-handler="MarkAllRead"><button class="button secondary" type="submit">@T("Đánh dấu tất cả đã đọc", "Mark all as read")</button></form>
+        }
+    </div>
+    <div class="notice membership-rules"><p>@T("Nhận thông báo không có nghĩa ưu đãi luôn được áp dụng: ưu đãi phải đang được kích hoạt, đúng hạng hiện tại và trong thời gian hiệu lực (UTC). Hệ thống tự chọn mức giảm cao nhất khi đặt vé và không cộng dồn ưu đãi. Việc mở trang này không đánh dấu thông báo là đã đọc.", "Receiving an announcement does not guarantee a discount: the offer must be active, match your exact current tier and be within its UTC validity window. Booking automatically selects the highest discount, without stacking. Opening this page does not mark notifications as read.")</p></div>
+    @if (Model.Notifications.Count == 0)
+    {
+        <div class="empty-state"><h2>@T("Chưa có thông báo ưu đãi", "No offer notifications yet")</h2><p>@T("Khi có ưu đãi dành cho hạng của bạn, thông báo sẽ xuất hiện tại đây.", "Announcements for offers targeting your tier will appear here.")</p><a class="button secondary" asp-page="Membership">@T("Xem hạng thành viên", "View membership")</a></div>
+    }
+    else
+    {
+        <div class="membership-notification-list">
+        @foreach (var notification in Model.Notifications)
+        {
+            <article class="card membership-notification @(notification.ReadAt is null ? "is-unread" : "is-read")">
+                <div class="membership-offer-heading"><h2>@notification.DiscountName</h2><strong class="membership-offer-percent">@notification.Percent.ToString("0.##")%</strong></div>
+                <div class="membership-notification-meta">
+                    <span class="badge @(notification.ReadAt is null ? "status-pending" : "status-paid")">@(notification.ReadAt is null ? T("Chưa đọc", "Unread") : T("Đã đọc", "Read"))</span>
+                    <span class="membership-tier membership-tier-@notification.Tier.ToString().ToLowerInvariant()">@MembershipLabels.Display(notification.Tier)</span>
+                    <span class="muted">@notification.CreatedAt.ToString("g") UTC</span>
+                </div>
+                <p class="muted">@Format("Thông báo được gửi khi bạn đủ điều kiện ở hạng {0}.", "Announced when you qualified at tier {0}.", MembershipLabels.Display(notification.Tier))</p>
+                <p class="membership-offer-availability"><strong>@Model.Availability(notification)</strong></p>
+                <dl class="membership-dates"><div><dt>@T("Bắt đầu", "Starts")</dt><dd>@notification.StartsAt.ToString("g") UTC</dd></div><div><dt>@T("Kết thúc", "Ends")</dt><dd>@notification.EndsAt.ToString("g") UTC</dd></div></dl>
+                @if (notification.ReadAt is null)
+                {
+                    <form method="post" asp-page-handler="MarkRead"><input type="hidden" name="notificationId" value="@notification.NotificationId" /><button class="button secondary" type="submit">@T("Đánh dấu đã đọc", "Mark as read")</button></form>
+                }
+                else
+                {
+                    <p class="muted membership-read-at">@Format("Đã đọc lúc {0} UTC", "Read at {0} UTC", notification.ReadAt.Value.ToString("g"))</p>
+                }
+            </article>
+        }
+        </div>
+    }
+}

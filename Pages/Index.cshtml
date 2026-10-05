@@ -1,0 +1,211 @@
+@page
+@model BusGo.Pages.IndexModel
+@{
+    ViewData["Title"] = T("Đi xa hơn, gần nhau hơn", "Go further, grow closer");
+    var scenicSlides = new[]
+    {
+        (Img: "/images/vietnam-bay.webp", Title: T("Vịnh Hạ Long · Quảng Ninh", "Ha Long Bay · Quang Ninh"), Sub: T("Kỳ quan thiên nhiên thế giới với hàng nghìn đảo đá vôi.", "World natural heritage with thousands of limestone islands."), Alt: T("Vịnh Hạ Long", "Ha Long Bay")),
+        (Img: "/images/vietnam-sapa.jpg", Title: T("Sa Pa · Lào Cai", "Sa Pa · Lao Cai"), Sub: T("Ruộng bậc thang vàng rực và mây ngàn Tây Bắc.", "Golden terraced rice fields in the Northwest clouds."), Alt: T("Sa Pa Lào Cai", "Sa Pa Lao Cai")),
+        (Img: "/images/vietnam-ninhbinh.jpg", Title: T("Tam Cốc · Ninh Bình", "Tam Coc · Ninh Binh"), Sub: T("Dòng sông Ngô Đồng uốn lượn giữa các đỉnh núi đá vôi.", "Ngo Dong river winding between karst peaks."), Alt: T("Tam Cốc Ninh Bình", "Tam Coc Ninh Binh")),
+        (Img: "/images/vietnam-dalat.jpg", Title: T("Đà Lạt · Lâm Đồng", "Da Lat · Lam Dong"), Sub: T("Rừng thông đại ngàn và sương sớm cao nguyên.", "Pine forests and highland morning mist."), Alt: T("Đà Lạt Lâm Đồng", "Da Lat Lam Dong")),
+        (Img: "/images/vietnam-hoian.jpg", Title: T("Phố cổ Hội An · Quảng Nam", "Hoi An Ancient Town · Quang Nam"), Sub: T("Đêm hoa đăng lung linh bên dòng sông Hoài thơ mộng.", "Lantern reflections over the poetic Hoai river."), Alt: T("Hội An Quảng Nam", "Hoi An Quang Nam")),
+        (Img: "/images/vietnam-hanoi.jpg", Title: T("Hồ Gươm · Hà Nội", "Hoan Kiem Lake · Hanoi"), Sub: T("Trái tim ngàn năm văn hiến và Tháp Rùa cổ kính.", "Thousand-year cultural heart and ancient Turtle Tower."), Alt: T("Hồ Gươm Hà Nội", "Hoan Kiem Lake Hanoi"))
+    };
+    var slidesJson = System.Text.Json.JsonSerializer.Serialize(scenicSlides.Select(s => new { img = s.Img, title = s.Title, sub = s.Sub, alt = s.Alt }));
+}
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <div class="home-welcome"><p>@T("Chào", "Hello") <strong>@(CurrentUser.Account?.FullName ?? T("bạn", "there"))</strong>, @T("hành trình tiếp theo đang chờ.", "your next journey awaits.")</p><a class="link-arrow" asp-page="/Customer/Tickets">@T("Vé của tôi", "My tickets") <span aria-hidden="true">↗</span></a></div>
+}
+@if (Model.Error is not null) { <div class="alert" role="alert">@Model.Error</div> }
+
+<section class="home-hero" aria-labelledby="home-heading">
+    <div class="hero-copy">
+        <span class="hero-kicker">@T("Những hành trình khắp Việt Nam", "Journeys across Vietnam")</span>
+        <h1 id="home-heading">@T("Đi xa hơn.", "Go further.")<br /><span>@T("Gần nhau hơn.", "Grow closer.")</span></h1>
+        <p>@T("Một chuyến về nhà, một nơi chưa từng đến.", "A journey home, a place you have never been.")<br />@T("Tìm chuyến xe phù hợp và bắt đầu câu chuyện của bạn.", "Find the right bus trip and start your story.")</p>
+    </div>
+    <figure class="hero-photo" data-hero-showcase data-slides="@slidesJson">
+        <div class="hero-photo-stage">
+            <img class="hero-photo-layer is-active" id="hero-layer-a" src="~/images/vietnam-bay.webp" width="1400" height="933" alt="@T("Vịnh Hạ Long", "Ha Long Bay")" fetchpriority="high" />
+            <img class="hero-photo-layer" id="hero-layer-b" src="~/images/vietnam-sapa.jpg" width="1400" height="933" alt="" aria-hidden="true" />
+        </div>
+        <figcaption><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.6"/></svg><div id="hero-caption-content"><strong id="hero-showcase-title">@T("Vịnh Hạ Long · Quảng Ninh", "Ha Long Bay · Quang Ninh")</strong><span id="hero-showcase-sub">@T("Kỳ quan thiên nhiên thế giới với hàng nghìn đảo đá vôi.", "World natural heritage with thousands of limestone islands.")</span></div></figcaption>
+        <button type="button" class="hero-photo-arrow hero-arrow-prev" data-hero-prev aria-label="@T("Xem ảnh trước", "Previous landscape")" title="@T("Ảnh trước", "Previous")">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button type="button" class="hero-photo-arrow hero-arrow-next" data-hero-next aria-label="@T("Xem ảnh tiếp theo", "Next landscape")" title="@T("Ảnh sau", "Next")">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+    </figure>
+</section>
+
+<div class="home-trip-search">
+    @await Html.PartialAsync("_TripSearchPanel", new BusGo.Models.TripSearchPanelModel(Model.Origins, Model.Destinations))
+</div>
+
+<div class="journey-benefits" aria-label="@T("Trải nghiệm trên BusGo", "The BusGo experience")">
+    <div class="journey-benefit"><span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M8 5h12M8 12h12M8 19h12M3 5h1M3 12h1M3 19h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div><h3>@T("So sánh, rồi lựa chọn", "Compare, then choose")</h3><p>@T("Giờ đi, giá vé và nhà xe trên cùng một trang.", "Departure times, fares and operators on one page.")</p></div></div>
+    <div class="journey-benefit"><span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h12v9H6zM4 13h16v5H4zM6 18v3m12-3v3" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><div><h3>@T("Chọn chỗ theo ý bạn", "Choose your seat")</h3><p>@T("Xem ghế còn trống trước khi xác nhận.", "Check available seats before confirming.")</p></div></div>
+    <div class="journey-benefit"><span class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3 5h18v5a2 2 0 0 0 0 4v5H3v-5a2 2 0 0 0 0-4V5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M15 8v2m0 4v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span><div><h3>@T("Hành trình trong tầm tay", "Your journey at your fingertips")</h3><p>@T("Quản lý vé và lịch sử ngay trong tài khoản.", "Manage tickets and booking history in your account.")</p></div></div>
+</div>
+
+@if (Model.Stats is { } stats)
+{
+    <section class="home-section" aria-label="@T("Tổng quan tài khoản", "Account overview")">
+        <div class="stats">
+            <div class="stat"><span>@T("Tổng số vé", "Total tickets")</span><strong>@stats.TotalTickets.ToString("N0")</strong></div>
+            <div class="stat"><span>@T("Chuyến sắp tới", "Upcoming trips")</span><strong>@stats.UpcomingTrips.ToString("N0")</strong></div>
+            <div class="stat"><span>@T("Tổng chi tiêu", "Total spending")</span><strong>@stats.TotalSpent.ToString("N0") @T("đ", "VND")</strong></div>
+            @if (Model.Membership is { } membership)
+            {
+                <div class="stat membership-home-stat">
+                    <a asp-page="/Customer/Membership"><span>@T("Hạng thành viên", "Membership tier")</span><strong class="membership-tier membership-tier-@membership.CurrentTier.Tier.ToString().ToLowerInvariant()">@membership.CurrentTier.DisplayName</strong></a>
+                    <small>@Format("Chi tiêu đã thanh toán: {0} đ", "Settled spending: {0} VND", membership.QualifiedSpend.ToString("N0"))</small>
+                    @if (membership.NextTier is { } nextTier)
+                    {
+                        <small>@Format("Còn {0} đ để đạt hạng {1}", "{0} VND to reach {1}", membership.RemainingSpend.ToString("N0"), nextTier.DisplayName)</small>
+                        <progress class="membership-progress" value="@membership.ProgressPercent.ToString(System.Globalization.CultureInfo.InvariantCulture)" max="100" aria-label="@Format("Tiến độ đến hạng {0}", "Progress toward {0}", nextTier.DisplayName)">@membership.ProgressPercent.ToString("N0")%</progress>
+                    }
+                    else
+                    {
+                        <small>@T("Bạn đã đạt hạng cao nhất.", "You have reached the highest tier.")</small>
+                    }
+                    <a class="membership-notification-link" asp-page="/Customer/Notifications">@Format("Thông báo chưa đọc: {0}", "Unread notifications: {0}", membership.UnreadNotifications.ToString("N0"))</a>
+                </div>
+            }
+        </div>
+    </section>
+}
+
+<section class="home-section" aria-labelledby="home-routes-heading">
+    <div class="home-section-heading">
+        <div><p class="eyebrow">@T("Chọn một hành trình", "Choose a journey")</p><h2 id="home-routes-heading">@T("Điểm đến tiếp theo của bạn?", "Where will you go next?")</h2><p>@T("Khám phá các tuyến có lịch chạy trong hệ thống BusGo.", "Explore routes with scheduled trips on BusGo.")</p></div>
+        <a class="link-arrow" asp-page="/Customer/Search">@T("Xem tất cả chuyến", "View all trips") <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="home-route-grid">
+    @foreach (var route in Model.PopularRoutes)
+    {
+        <article class="home-route">
+            <div class="home-route-top"><span>@T("Hành trình liên tỉnh", "Interprovincial journey")</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="14" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 11h16M7 18v3m10-3v3M8 14h1m6 0h1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+            <div class="home-route-body">
+                <h3><span>@route.From</span><span>@route.To</span></h3>
+                <p class="home-route-meta">@Format("Ước tính {0}", "Estimated {0}", route.DurationDisplay)</p>
+                <a class="home-route-company" asp-page="/Customer/Company" asp-route-name="@route.CompanyName">@route.CompanyName</a>
+                <div class="home-route-bottom"><div><small>@T("Giá tham khảo từ", "Indicative fare from")</small><strong>@route.PriceDisplay</strong></div><a asp-page="/Customer/Search" asp-route-Origin="@route.From" asp-route-Destination="@route.To" aria-label="@Format("Tìm chuyến từ {0} đến {1}", "Find trips from {0} to {1}", route.From, route.To)"><span aria-hidden="true">↗</span></a></div>
+            </div>
+        </article>
+    }
+    </div>
+    @if (Model.Error is null && Model.PopularRoutes.Count == 0)
+    {
+        <div class="empty-state"><h3>@T("Những hành trình mới đang được chuẩn bị", "New journeys are on their way")</h3><p>@T("Các tuyến sẽ xuất hiện khi lịch chạy được đăng trong hệ thống.", "Routes will appear when schedules are published in the system.")</p><a class="button secondary" asp-page="/Customer/RouteGuides">@T("Khám phá cẩm nang", "Explore the guides")</a></div>
+    }
+</section>
+
+<section class="home-section" aria-labelledby="home-landmarks-heading">
+    <div class="home-section-heading">
+        <div>
+            <p class="eyebrow">@T("VIỆT NAM TƯƠI ĐẸP", "BEAUTIFUL VIETNAM")</p>
+            <h2 id="home-landmarks-heading">@T("Danh lam thắng cảnh nổi bật", "Featured scenic landscapes")</h2>
+            <p>@T("Những điểm dừng chân tuyệt đẹp gắn liền với các tuyến xe liên tỉnh trên BusGo.", "Breathtaking destinations connected by interprovincial bus routes on BusGo.")</p>
+        </div>
+        <a class="link-arrow" asp-page="/Customer/RouteGuides">@T("Khám phá cẩm nang", "Explore guides") <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="scenic-grid">
+        <article class="scenic-card">
+            <div class="scenic-media">
+                <img src="~/images/vietnam-sapa.jpg" alt="@T("Ruộng bậc thang Sa Pa", "Sa Pa terraced fields")" loading="lazy" />
+                <span class="scenic-badge">@T("Lào Cai · Tây Bắc", "Lao Cai · Northwest")</span>
+            </div>
+            <div class="scenic-content">
+                <h3>@T("Sa Pa & Ruộng bậc thang", "Sa Pa & Terraced Fields")</h3>
+                <p class="muted">@T("Mây ngàn bồng bềnh ôm trọn những thửa ruộng bậc thang tuyệt mỹ và đỉnh Fansipan nóc nhà Đông Dương.", "Floating mist embracing magnificent terraced rice fields and Mount Fansipan.")</p>
+                <div class="scenic-footer">
+                    <span class="scenic-tag">@T("Khí hậu mát mẻ quanh năm", "Cool mountain climate")</span>
+                    <a class="button small secondary" asp-page="/Customer/Search" asp-route-Destination="Sa Pa">@T("Tìm chuyến đi Sa Pa", "Find trips to Sa Pa") <span aria-hidden="true">↗</span></a>
+                </div>
+            </div>
+        </article>
+        <article class="scenic-card">
+            <div class="scenic-media">
+                <img src="~/images/vietnam-bay.webp" alt="@T("Vịnh Hạ Long", "Ha Long Bay")" loading="lazy" />
+                <span class="scenic-badge">@T("Quảng Ninh · Đông Bắc", "Quang Ninh · Northeast")</span>
+            </div>
+            <div class="scenic-content">
+                <h3>@T("Vịnh Hạ Long kỳ vĩ", "Magnificent Ha Long Bay")</h3>
+                <p class="muted">@T("Di sản thiên nhiên thế giới với hàng nghìn hòn đảo đá vôi xanh biếc vươn mình giữa sóng nước vịnh Bắc Bộ.", "World Heritage bay with thousands of limestone karst islands rising from emerald waters.")</p>
+                <div class="scenic-footer">
+                    <span class="scenic-tag">@T("Di sản UNESCO", "UNESCO Heritage")</span>
+                    <a class="button small secondary" asp-page="/Customer/Search" asp-route-Destination="Hải Phòng">@T("Tìm chuyến đến vịnh", "Find trips to the bay") <span aria-hidden="true">↗</span></a>
+                </div>
+            </div>
+        </article>
+        <article class="scenic-card">
+            <div class="scenic-media">
+                <img src="~/images/vietnam-ninhbinh.jpg" alt="@T("Tam Cốc Ninh Bình", "Tam Coc Ninh Binh")" loading="lazy" />
+                <span class="scenic-badge">@T("Ninh Bình · Tràng An", "Ninh Binh · Trang An")</span>
+            </div>
+            <div class="scenic-content">
+                <h3>@T("Tam Cốc & Tràng An", "Tam Coc & Trang An")</h3>
+                <p class="muted">@T("Dòng sông Ngô Đồng êm đềm lượn quanh các thung lũng đá vôi ngập nước và những vạt lúa vàng bát ngát.", "Gentle Ngo Dong river meandering through karst valleys and golden rice carpets.")</p>
+                <div class="scenic-footer">
+                    <span class="scenic-tag">@T("Hạ Long trên cạn", "Inland Ha Long Bay")</span>
+                    <a class="button small secondary" asp-page="/Customer/Search" asp-route-Destination="Ninh Bình">@T("Tìm chuyến đi Ninh Bình", "Find trips to Ninh Binh") <span aria-hidden="true">↗</span></a>
+                </div>
+            </div>
+        </article>
+        <article class="scenic-card">
+            <div class="scenic-media">
+                <img src="~/images/vietnam-dalat.jpg" alt="@T("Đà Lạt sương mù", "Misty Da Lat")" loading="lazy" />
+                <span class="scenic-badge">@T("Lâm Đồng · Tây Nguyên", "Lam Dong · Highlands")</span>
+            </div>
+            <div class="scenic-content">
+                <h3>@T("Đà Lạt mộng mơ", "Dreamy Da Lat")</h3>
+                <p class="muted">@T("Rừng thông bạt ngàn trong làn sương sớm cao nguyên, hoa nở bốn mùa và những con dốc quanh co quyến rũ.", "Endless pine forests in early morning highland mist and charming winding slopes.")</p>
+                <div class="scenic-footer">
+                    <span class="scenic-tag">@T("Thành phố ngàn hoa", "City of eternal spring")</span>
+                    <a class="button small secondary" asp-page="/Customer/Search" asp-route-Destination="Đà Lạt">@T("Tìm chuyến đi Đà Lạt", "Find trips to Da Lat") <span aria-hidden="true">↗</span></a>
+                </div>
+            </div>
+        </article>
+        <article class="scenic-card">
+            <div class="scenic-media">
+                <img src="~/images/vietnam-hoian.jpg" alt="@T("Phố cổ Hội An", "Hoi An Ancient Town")" loading="lazy" />
+                <span class="scenic-badge">@T("Quảng Nam · Miền Trung", "Quang Nam · Central Coast")</span>
+            </div>
+            <div class="scenic-content">
+                <h3>@T("Phố cổ Hội An", "Hoi An Ancient Town")</h3>
+                <p class="muted">@T("Những mái ngói rêu phong, ánh đèn lồng rực rỡ và những chiếc thuyền hoa đăng trôi nhẹ trên sông Hoài.", "Moss-covered tile roofs, vibrant silk lanterns, and glowing riverboats on the Hoai river.")</p>
+                <div class="scenic-footer">
+                    <span class="scenic-tag">@T("Di sản văn hóa thế giới", "World Cultural Heritage")</span>
+                    <a class="button small secondary" asp-page="/Customer/Search" asp-route-Destination="Đà Nẵng">@T("Tìm chuyến đi Hội An", "Find trips to Hoi An") <span aria-hidden="true">↗</span></a>
+                </div>
+            </div>
+        </article>
+        <article class="scenic-card">
+            <div class="scenic-media">
+                <img src="~/images/vietnam-hanoi.jpg" alt="@T("Hồ Hoàn Kiếm Hà Nội", "Hoan Kiem Lake Hanoi")" loading="lazy" />
+                <span class="scenic-badge">@T("Hà Nội · Thủ đô", "Hanoi · Capital")</span>
+            </div>
+            <div class="scenic-content">
+                <h3>@T("Hồ Gươm & Tháp Rùa", "Hoan Kiem Lake & Turtle Tower")</h3>
+                <p class="muted">@T("Cầu Thê Húc son đỏ uốn cong dẫn vào đền Ngọc Sơn bên hàng liễu rủ, trái tim ngàn năm văn hiến của đất nước.", "Scarlet The Huc bridge leading into Ngoc Son temple, the thousand-year cultural heart.")</p>
+                <div class="scenic-footer">
+                    <span class="scenic-tag">@T("Thủ đô ngàn năm", "Ancient Capital")</span>
+                    <a class="button small secondary" asp-page="/Customer/Search" asp-route-Destination="Hà Nội">@T("Tìm chuyến về Hà Nội", "Find trips to Hanoi") <span aria-hidden="true">↗</span></a>
+                </div>
+            </div>
+        </article>
+    </div>
+</section>
+
+<section class="home-editorial" aria-labelledby="journey-guide-heading">
+    <div><p class="eyebrow">@T("Đơn giản, từ bước đầu tiên", "Simple from the first step")</p><h2 id="journey-guide-heading">@T("Sẵn sàng cho một chuyến đi mới.", "Ready for a new journey.")</h2><p>@T("Chọn hành trình, tìm chỗ ngồi yêu thích và kiểm tra thông tin trước khi đặt vé.", "Choose a route, find your preferred seat and check the details before booking.")</p><a class="link-arrow" asp-page="/Customer/Help">@T("Xem hướng dẫn đặt vé", "View the booking guide") <span aria-hidden="true">↗</span></a></div>
+    <div class="journey-steps">
+        <div><span class="journey-step-number">01</span><h3>@T("Tìm chuyến", "Find a trip")</h3><p>@T("Chọn nơi đi, nơi đến và ngày bạn muốn khởi hành.", "Choose your origin, destination and departure date.")</p></div>
+        <div><span class="journey-step-number">02</span><h3>@T("Chọn ghế", "Choose a seat")</h3><p>@T("So sánh chuyến xe, rồi chọn chỗ ngồi phù hợp.", "Compare bus trips, then choose the right seat.")</p></div>
+        <div><span class="journey-step-number">03</span><h3>@T("Kiểm tra & đặt vé", "Review & book")</h3><p>@T("Xác nhận thông tin hành khách và theo dõi vé trong tài khoản.", "Confirm passenger details and track your ticket in your account.")</p></div>
+    </div>
+</section>

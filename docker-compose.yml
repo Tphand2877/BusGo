@@ -1,0 +1,51 @@
+services:
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: busgo-sql
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-BusGoStrongP@ss2026}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD:-BusGoStrongP@ss2026}\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  busgo-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: busgo-app
+    restart: always
+    depends_on:
+      sql-server:
+        condition: service_healthy
+    ports:
+      - "5080:8080"
+    environment:
+      BUS_TICKET_CONNECTION_STRING: "Server=sql-server,1433;Database=BusTicketSaleSystem;User Id=sa;Password=${MSSQL_SA_PASSWORD:-BusGoStrongP@ss2026};TrustServerCertificate=True;Encrypt=False;"
+      BUS_TICKET_MASTER_CONNECTION_STRING: "Server=sql-server,1433;Database=master;User Id=sa;Password=${MSSQL_SA_PASSWORD:-BusGoStrongP@ss2026};TrustServerCertificate=True;Encrypt=False;"
+      STATION_LOCATION: "Thái Nguyên"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_URLS: "http://+:8080"
+      DATABASE__SEEDUPCOMINGTRIPS: "false"
+      BREVO_API_KEY: "${BREVO_API_KEY:-}"
+      EMAIL_SENDER_ADDRESS: "${EMAIL_SENDER_ADDRESS:-}"
+      EMAIL_SENDER_NAME: "${EMAIL_SENDER_NAME:-BusGo}"
+      VNPAY_TMN_CODE: "${VNPAY_TMN_CODE:-}"
+      VNPAY_HASH_SECRET: "${VNPAY_HASH_SECRET:-}"
+      VNPAY_RETURN_URL: "${VNPAY_RETURN_URL:-}"
+    volumes:
+      - app_logs:/app/Logs
+      - app_dpkeys:/root/.aspnet/DataProtection-Keys
+
+volumes:
+  mssql_data:
+  app_logs:
+  app_dpkeys:

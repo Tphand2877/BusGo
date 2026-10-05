@@ -1,0 +1,17 @@
+@page
+@model BusGo.Pages.Admin.RoutesModel
+@{ ViewData["Title"] = T("Tuyến xe", "Routes"); }
+<header class="page-header"><div><p class="eyebrow">@T("Mạng lưới", "Network")</p><h1>@T("Tuyến xe", "Routes")</h1><p class="muted">@Format("Tuyến phải phục vụ bến {0}.", "Routes must serve station {0}.", Model.Station)</p></div></header>
+<partial name="_AdminValidation" />
+<section class="card"><h2>@(Model.Input.Id == 0 ? T("Tạo tuyến", "Create route") : T("Sửa tuyến", "Edit route"))</h2>
+<form method="post" asp-page-handler="Save"><input type="hidden" asp-for="Input.Id" /><div class="form-grid">
+<div class="field"><label asp-for="Input.Origin">@T("Điểm đi", "Origin")</label><input asp-for="Input.Origin" /><span asp-validation-for="Input.Origin"></span></div>
+<div class="field"><label asp-for="Input.Destination">@T("Điểm đến", "Destination")</label><input asp-for="Input.Destination" /><span asp-validation-for="Input.Destination"></span></div>
+<div class="field"><label asp-for="Input.Distance">@T("Khoảng cách (km, không bắt buộc)", "Distance (km, optional)")</label><input asp-for="Input.Distance" type="number" min="0" step="0.1" /></div>
+</div><div class="actions"><button type="submit">@T("Lưu tuyến", "Save route")</button><a asp-page="Routes" class="button secondary">@T("Xóa / hủy", "Clear / cancel")</a></div></form></section>
+@if (Model.Loaded)
+{
+<section class="card"><h2>@T("Mạng lưới tại bến", "Station network")</h2><div class="table-wrap"><table><thead><tr><th>@T("Điểm đi", "Origin")</th><th>@T("Điểm đến", "Destination")</th><th>@T("Khoảng cách", "Distance")</th><th>@T("Thao tác", "Actions")</th></tr></thead><tbody>
+@foreach (var r in Model.Routes) { <tr><td>@r.Origin</td><td>@r.Destination</td><td>@r.DistanceDisplay</td><td><div class="actions"><a class="button secondary" asp-route-editId="@r.RouteId">@T("Chỉnh sửa", "Edit")</a><form method="post" asp-page-handler="Delete" data-confirm="@T("Xóa vĩnh viễn tuyến này? Không thể xóa tuyến đã có chuyến.", "Delete this route permanently? Routes with trips cannot be deleted.")"><input type="hidden" name="id" value="@r.RouteId" /><button class="button danger">@T("Xóa", "Delete")</button></form></div></td></tr> }
+</tbody></table></div>@if (Model.Routes.Count == 0) { <p class="empty-state">@T("Không có tuyến trong phạm vi bến này.", "No routes in this station scope.")</p> }</section>
+}

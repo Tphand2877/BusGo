@@ -1,0 +1,11 @@
+@page
+@model BusGo.Pages.Customer.CompaniesModel
+@{ ViewData["Title"] = T("Nhà xe", "Bus operators"); }
+<div class="page-header"><div><p class="eyebrow">@T("CÙNG BẠN TRÊN MỖI TUYẾN ĐƯỜNG", "WITH YOU ON EVERY ROUTE")</p><h1>@T("Khám phá nhà xe", "Discover bus operators")</h1><p class="muted">@T("Tìm hiểu nhà xe có chuyến được đăng trên hệ thống BusGo.", "Discover operators with trips published on BusGo.")</p></div><a class="button secondary" asp-page="Search">@T("Tìm theo hành trình", "Search by route")</a></div>
+@if (Model.Error is not null) { <div class="alert" role="alert">@Model.Error</div> }
+else if (Model.Companies.Count == 0) { <div class="empty-state"><h2>@T("Chưa có nhà xe", "No operators yet")</h2><p>@T("Nhà xe sẽ xuất hiện khi có chuyến được đăng trên BusGo.", "Operators will appear when their trips are published on BusGo.")</p></div> }
+<div class="grid grid-3 company-directory">@foreach (var company in Model.Companies)
+{
+<article class="card company-card"><div class="company-logo" aria-hidden="true">@company.LogoText</div><p class="eyebrow">@T("NHÀ XE TRÊN BUSGO", "BUSGO OPERATORS")</p><h2>@company.CompanyName</h2><p class="muted">@T("Khu vực theo hồ sơ", "Area listed in profile")</p><p class="company-area">@company.OperatingArea</p><a class="button secondary" asp-page="Company" asp-route-name="@company.CompanyName">@T("Xem chuyến xe", "View trips") <span aria-hidden="true">→</span></a></article>
+}</div>
+<p class="directory-note">@T("Thông tin nhà xe được hiển thị theo hồ sơ trong hệ thống. Đánh giá, tiện ích và thông tin liên hệ chưa được BusGo xác minh. Kiểm tra chi tiết từng chuyến trước khi đặt.", "Operator information is shown as recorded in the system. Ratings, amenities and contact details have not been verified by BusGo. Check each trip's details before booking.")</p>

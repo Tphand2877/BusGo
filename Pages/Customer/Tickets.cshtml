@@ -1,0 +1,18 @@
+@page
+@model BusGo.Pages.Customer.TicketsModel
+@{ ViewData["Title"] = Model.IsCounterStaff ? T("Vé do tôi lập", "Tickets I issued") : T("Vé của tôi", "My tickets"); }
+<div class="page-header"><div><p class="eyebrow">@(Model.IsCounterStaff ? T("QUẦY VÉ", "TICKET COUNTER") : T("HÀNH TRÌNH CỦA BẠN", "YOUR JOURNEYS"))</p><h1>@(Model.IsCounterStaff ? T("Vé do tôi lập", "Tickets I issued") : T("Vé của tôi", "My tickets"))</h1><p class="muted">@(Model.IsCounterStaff ? T("Các vé bạn đã lập cho khách tại quầy. Chỉ hiện vé thuộc tài khoản đang đăng nhập.", "Tickets you issued for counter passengers. Only tickets belonging to the signed-in account are shown.") : T("Quản lý chuyến sắp tới và các chỗ đang giữ.", "Manage upcoming journeys and reserved seats."))</p></div><a class="button" asp-page="Search">@(Model.IsCounterStaff ? T("Bán vé cho khách tiếp theo", "Sell tickets to the next passenger") : T("Tìm chuyến xe", "Find departures"))</a></div>
+<nav class="ticket-tabs" aria-label="@T("Lọc vé", "Filter tickets")"><a asp-page="Tickets" aria-current="@(Model.Filter != "pending" ? "page" : null)">@(Model.IsCounterStaff ? T("Vé sắp đi", "Upcoming tickets") : T("Chuyến sắp tới", "Upcoming journeys"))</a><a asp-page="Tickets" asp-route-filter="pending" aria-current="@(Model.Filter == "pending" ? "page" : null)">@T("Chờ thanh toán", "Awaiting payment")</a><a asp-page="History">@(Model.IsCounterStaff ? T("Lịch sử bán vé", "Ticket sales history") : T("Lịch sử đi lại", "Travel history"))</a></nav>
+@if (Model.Error is not null) { <div class="alert" role="alert">@Model.Error</div> }
+else if (Model.Tickets.Count == 0) { <div class="empty-state"><h2>@(Model.IsCounterStaff ? T("Chưa có vé nào", "No tickets yet") : T("Chưa có vé", "No tickets yet"))</h2><p>@(Model.IsCounterStaff ? T("Các vé bạn lập cho khách sẽ xuất hiện ở đây.", "Tickets you issue for passengers will appear here.") : T("Tìm chuyến và bắt đầu hành trình tiếp theo.", "Find a departure and start your next journey."))</p><a class="button" asp-page="Search">@(Model.IsCounterStaff ? T("Lập vé cho khách", "Issue passenger tickets") : T("Tìm chuyến", "Find departures"))</a></div> }
+<div class="grid grid-2 journey-list">@foreach (var ticket in Model.Tickets)
+{
+<article class="card journey-card">
+    <div class="journey-card-top"><span class="ticket-code">@ticket.TicketCode</span><span class="badge @(ticket.IsCancelled ? "status-cancelled" : ticket.IsPaid ? "status-paid" : "status-pending")">@Value(ticket.Status)</span></div>
+    <p class="departure-time">@ticket.DepartureFormatted</p><h2>@ticket.Route</h2>
+    <p class="muted">@if (!string.IsNullOrWhiteSpace(ticket.CompanyName)) {<text>@ticket.CompanyName · </text>}@Value(ticket.BusType) · @T("Ghế", "Seats") @ticket.SeatNumbers</p>
+    <p class="journey-payment">@T("Thanh toán:", "Payment:") <strong>@Value(ticket.PaymentStatus)</strong> · @(ticket.PaymentMethod == "BankTransfer" ? T("Chuyển khoản VietQR", "VietQR bank transfer") : ticket.PaymentMethod == "Cash" ? (ticket.IsPaid || Model.IsCounterStaff ? T("Tiền mặt", "Cash") : T("Tiền mặt trên xe", "Cash on board")) : Value(ticket.PaymentMethod))</p>
+    @if (ticket.IsAwaitingPayment && ticket.PaymentExpiresAt is { } deadline) { <p class="notice">@T("Hạn thanh toán:", "Payment deadline:") @deadline.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p> }
+    <div class="journey-card-bottom"><strong class="price">@ticket.TotalPrice.ToString("N0") @T("đ", "VND")</strong><a class="button secondary" asp-page="Ticket" asp-route-id="@ticket.TicketId">@(ticket.IsPaid ? T("Xem vé điện tử", "View electronic ticket") : T("Xem đặt chỗ", "View reservation"))</a></div>
+</article>
+}</div>

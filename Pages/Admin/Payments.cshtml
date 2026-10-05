@@ -1,0 +1,24 @@
+@page
+@model BusGo.Pages.Admin.PaymentsModel
+@{ ViewData["Title"] = T("Thanh toán và hoàn tiền", "Payments & refunds"); }
+<header class="page-header"><div><p class="eyebrow">@T("Bảng đối soát", "Settlement console")</p><h1>@T("Thanh toán và hoàn tiền", "Payments & refunds")</h1><p class="muted">@T("Mọi thao tác tuân theo chuyển trạng thái sổ thanh toán. Tìm kiếm trả về tối đa 200 giao dịch phù hợp mới nhất.", "Every action uses the payment ledger's state transitions. Search returns up to 200 most recent matching entries.")</p></div></header>
+<partial name="_AdminValidation" />
+<form method="get" class="card"><div class="form-grid"><div class="field"><label asp-for="Status">@T("Trạng thái", "Status")</label><select asp-for="Status"><option value="">@T("Tất cả", "All")</option><option value="Pending">@Value("Pending")</option><option value="Success">@Value("Success")</option><option value="Failed">@Value("Failed")</option><option value="Refunded">@Value("Refunded")</option></select></div><div class="field"><label asp-for="Search">@T("Vé, hành khách hoặc mã tham chiếu giao dịch", "Ticket, passenger or transaction reference")</label><input asp-for="Search" /></div></div><button>@T("Áp dụng bộ lọc", "Apply filters")</button></form>
+@if(Model.Loaded && Model.Stats is {} s) {
+<section class="stats"><div class="stat"><span>@T("Chờ xử lý", "Pending") (@s.PendingCount)</span><strong>@s.PendingAmount.ToString("N0") VND</strong></div><div class="stat"><span>@T("Đã thu", "Settled") (@s.SuccessCount)</span><strong>@s.SuccessAmount.ToString("N0") VND</strong></div><div class="stat"><span>@T("Thất bại", "Failed") (@s.FailedCount)</span><strong>@s.FailedAmount.ToString("N0") VND</strong></div><div class="stat"><span>@T("Đã hoàn", "Refunded") (@s.RefundedCount)</span><strong>@s.RefundedAmount.ToString("N0") VND</strong></div></section>
+@foreach(var p in Model.Payments) {
+<section class="card"><div class="page-header"><div><h2>@p.TicketCode · @p.PassengerName</h2><p>@p.RouteSummary · @p.DepartureDisplay</p></div><span class="badge">@p.StatusDisplay</span></div>
+<div class="grid grid-3"><div><strong>@p.AmountDisplay</strong><p>@p.ChannelDisplay · @T("Thanh toán", "Payment") #@p.PaymentId</p><p>@T("Vé:", "Ticket:") @p.TicketStatusDisplay</p></div><div><p>@T("Tham chiếu:", "Reference:") @p.ReferenceDisplay</p><p>@T("Tạo lúc:", "Created:") @p.CreatedAtDisplay</p><p>@T("Thanh toán lúc:", "Paid:") @p.PaidAtDisplay</p></div><div><p>@p.ExpiryDisplay</p><p>@T("Xác nhận bởi:", "Confirmed by:") @p.ConfirmedByDisplay</p><p>@p.RefundRequestDisplay</p><p>@p.NotesDisplay</p></div></div>
+@if(p.CanConfirm || p.CanReject || p.CanApproveRefund) {
+<form method="post"><input type="hidden" name="id" value="@p.PaymentId" /><input type="hidden" asp-for="Status" /><input type="hidden" asp-for="Search" /><div class="form-grid"><label>@T("Mã tham chiếu nhà cung cấp / ngân hàng", "Provider / bank reference")<input name="reference" maxlength="100" value="@p.ProviderTransactionNo" /></label><label>@T("Ghi chú thao tác / lý do từ chối", "Action note / rejection reason")<textarea name="note" maxlength="1000"></textarea></label></div><div class="actions">
+@if(p.CanConfirm && !User.IsInRole("Owner")) { <button asp-page-handler="Confirm">@T("Xác nhận đã thu tiền", "Confirm payment received")</button> }
+else if(p.CanConfirm && User.IsInRole("Owner")) { <span class="muted" style="font-size: 12px; align-self: center;"><small>@T("Chủ sở hữu không duyệt thanh toán; thao tác này dành cho Quản trị viên / Nhân viên bến.", "The Owner cannot approve settlements; this action is for Administrators / Station Staff.")</small></span> }
+@if(p.CanReject) { <button class="button danger" asp-page-handler="Reject">@T("Từ chối thanh toán (cần lý do)", "Reject payment (reason required)")</button> }
+@if(p.CanApproveRefund) { <button asp-page-handler="Refund">@T("Duyệt hoàn tiền", "Approve refund")</button> }
+</div></form>
+}
+@if(p.CanCheckIn && !User.IsInRole("Owner")) { <form method="post" asp-page-handler="CheckIn"><input type="hidden" name="ticketId" value="@p.TicketId" /><input type="hidden" asp-for="Status" /><input type="hidden" asp-for="Search" /><button class="button secondary">@T("Soát vé hành khách", "Check in passenger")</button></form> }
+</section>
+}
+@if(Model.Payments.Count == 0) { <p class="empty-state">@T("Không có thanh toán phù hợp.", "No matching payments.")</p> }
+}

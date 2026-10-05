@@ -1,0 +1,18 @@
+@page
+@model BusGo.Pages.Account.ProfileModel
+@{ ViewData["Title"] = T("Hồ sơ", "Profile"); }
+<div class="page-header"><div><p class="eyebrow">@T("TÀI KHOẢN CỦA BẠN", "YOUR ACCOUNT")</p><h1>@T("Hồ sơ", "Profile")</h1><p class="muted">@T("Cập nhật thông tin và bảo vệ tài khoản.", "Update your details and protect your account.")</p></div><a class="button secondary" asp-page="/Settings">@T("Cài đặt", "Settings")</a></div>
+<div class="grid grid-2 profile-grid">
+<section class="card"><p class="eyebrow">@T("01 · THÔNG TIN HÀNH KHÁCH", "01 · PASSENGER DETAILS")</p><h2>@T("Thông tin cá nhân", "Personal information")</h2><p class="muted">@User.Identity?.Name · @(CurrentUser.Account?.Role == "Admin" ? T("Quản trị viên", "Administrator") : T("Khách hàng", "Customer"))</p>
+<form method="post" asp-page-handler="Profile" class="form-grid">
+<div class="field"><label asp-for="FullName">@T("Họ và tên", "Full name")</label><input asp-for="FullName" required maxlength="100" autocomplete="name" /></div>
+<div class="field"><label asp-for="Email">Email</label><input asp-for="Email" type="email" autocomplete="email" /></div>
+<div class="field"><label asp-for="Phone">@T("Số điện thoại", "Phone number")</label><input asp-for="Phone" type="tel" autocomplete="tel" /></div>
+<button type="submit" class="button">@T("Lưu thay đổi", "Save changes")</button></form></section>
+<section class="card"><p class="eyebrow">@T("02 · ĐĂNG NHẬP", "02 · SIGN-IN")</p><h2>@T("Đổi mật khẩu", "Change password")</h2><p class="muted">@T("Dùng mật khẩu riêng cho tài khoản BusGo.", "Use a unique password for your BusGo account.")</p>
+<form method="post" asp-page-handler="Password" class="form-grid">
+<div class="field"><label asp-for="CurrentPassword">@T("Mật khẩu hiện tại", "Current password")</label><input asp-for="CurrentPassword" type="password" required autocomplete="current-password" /></div>
+<div class="field"><label asp-for="NewPassword">@T("Mật khẩu mới", "New password")</label><input asp-for="NewPassword" type="password" required minlength="8" maxlength="128" autocomplete="new-password" /><small class="muted">@T("Gồm chữ hoa, chữ thường và chữ số.", "Include uppercase, lowercase and digits.")</small></div>
+<div class="field"><label asp-for="ConfirmPassword">@T("Nhập lại mật khẩu mới", "Confirm new password")</label><input asp-for="ConfirmPassword" type="password" required autocomplete="new-password" /></div>
+<button type="submit" class="button secondary">@T("Cập nhật mật khẩu", "Update password")</button></form></section>
+</div>

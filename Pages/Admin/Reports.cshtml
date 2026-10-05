@@ -1,0 +1,243 @@
+@page
+@model BusGo.Pages.Admin.ReportsModel
+@{ ViewData["Title"] = T("Doanh thu và hoa hồng", "Revenue & commission"); }
+<header class="page-header"><div><p class="eyebrow">@T("Báo cáo theo thanh toán", "Payment-backed reporting")</p><h1>@T("Doanh thu và hoa hồng", "Revenue & commission")</h1><p class="muted">@T("Ngày UTC, bao gồm cả hai đầu. Doanh thu đã thu trừ hoàn tiền; hoa hồng theo tỷ lệ cấu hình từng tuyến.", "UTC dates, inclusive. Settled ledger revenue less refunds; commission follows each route's configured rate.")</p></div></header>
+<partial name="_AdminValidation" />
+<form method="get" class="card no-print">
+    <div class="form-grid">
+        <div class="field"><label asp-for="From">@T("Từ ngày (UTC)", "From (UTC)")</label><input asp-for="From" type="date" /></div>
+        <div class="field"><label asp-for="To">@T("Đến ngày (UTC)", "Through (UTC)")</label><input asp-for="To" type="date" /></div>
+    </div>
+    <div class="actions">
+        <button>@T("Chạy báo cáo", "Run report")</button>
+        <a class="button secondary" asp-route-days="7">@T("7 ngày gần nhất", "Last 7 days")</a>
+        <a class="button secondary" asp-route-days="30">@T("30 ngày gần nhất", "Last 30 days")</a>
+        <a class="button secondary" asp-page-handler="ExportExcel" asp-route-From="@Model.From.ToString("yyyy-MM-dd")" asp-route-To="@Model.To.ToString("yyyy-MM-dd")" title="@T("Tải báo cáo định dạng Excel (.csv)", "Download Excel report (.csv)")">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6M8 13h8M8 17h8M10 9h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            @T("Xuất file Excel", "Export to Excel")
+        </a>
+        <button type="button" class="button secondary" data-print>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 14h12v8H6z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            @T("In báo cáo", "Print report")
+        </button>
+    </div>
+</form>
+
+@if(Model.Loaded) {
+<!-- Printable formal letterhead for print and export -->
+<div class="print-report-header print-only" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: start; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 16px;">
+        <div>
+            <p style="margin: 0; font-size: 11px; text-transform: uppercase; font-weight: 700;">@T("TỔNG CÔNG TY VẬN TẢI & BẾN XE BUSGO", "BUSGO TRANSPORT & TERMINALS CORPORATION")</p>
+            <p style="margin: 3px 0 0; font-size: 13px; font-weight: 800;">@T("BẾN XE:", "TERMINAL:") @Model.Station.ToUpper()</p>
+        </div>
+        <div style="text-align: right; font-size: 11px;">
+            <p style="margin: 0;"><strong>@T("CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", "SOCIALIST REPUBLIC OF VIETNAM")</strong></p>
+            <p style="margin: 2px 0 0; font-size: 10px;">@T("Độc lập – Tự do – Hạnh phúc", "Independence – Freedom – Happiness")</p>
+        </div>
+    </div>
+    <div style="text-align: center; margin: 18px 0 20px;">
+        <h1 style="font-size: 20px; font-weight: 900; margin: 0 0 6px; letter-spacing: -.02em;">@T("BÁO CÁO TỔNG HỢP TÀI CHÍNH, DOANH THU & HOA HỒNG BẾN", "FINANCIAL, REVENUE & COMMISSION SUMMARY REPORT")</h1>
+        <p style="margin: 0; font-size: 12px;">@Format("Kỳ báo cáo: Từ {0} đến {1} (UTC)", "Reporting period: From {0} through {1} (UTC)", Model.From.ToString("dd/MM/yyyy"), Model.To.ToString("dd/MM/yyyy"))</p>
+        <p style="margin: 3px 0 0; font-size: 11px; color: #444;">@Format("Thời gian xuất báo cáo: {0} UTC · Người lập: {1} ({2})", "Exported at: {0} UTC · Prepared by: {1} ({2})", DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss"), CurrentUser.Account?.FullName ?? "Administrator", Value(CurrentUser.Account?.Role ?? "Admin"))</p>
+    </div>
+</div>
+
+<section class="stats" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+    <div class="stat"><span>@T("Doanh thu thuần", "Net revenue")</span><strong>@Model.Net.ToString("N0") VND</strong><p class="muted" style="font-size: 11px; margin: 4px 0 0;">@T("Doanh thu đã trừ tiền hoàn vé", "Gross minus refunded fares")</p></div>
+    <div class="stat"><span>@T("Hoa hồng bến xe", "Station commission")</span><strong>@Model.Commission.ToString("N0") VND</strong><p class="muted" style="font-size: 11px; margin: 4px 0 0;">@Format("Bình quân {0}% doanh thu", "Avg {0}% of net revenue", Model.AverageCommissionRate)</p></div>
+    <div class="stat"><span>@T("Thanh toán cho nhà xe", "Operator payout")</span><strong>@Model.Payout.ToString("N0") VND</strong><p class="muted" style="font-size: 11px; margin: 4px 0 0;">@T("Số tiền đối soát trả đối tác", "Payable to transport partners")</p></div>
+    <div class="stat"><span>@T("Tổng số vé bán", "Total tickets sold")</span><strong>@Model.Tickets.ToString("N0") @T("vé", "tickets")</strong><p class="muted" style="font-size: 11px; margin: 4px 0 0;">@Format("Giá bình quân {0} đ/vé", "Avg fare {0} VND/ticket", Model.AverageFare.ToString("N0"))</p></div>
+    <div class="stat"><span>@T("Doanh thu gộp & Hoàn tiền", "Gross & Refunds")</span><strong style="font-size: 18px;">@Model.Gross.ToString("N0") đ</strong><p class="muted" style="font-size: 11px; margin: 4px 0 0;">@Format("Đã hoàn: {0} VND", "Refunded: {0} VND", Model.Refunds.ToString("N0"))</p></div>
+    <div class="stat"><span>@T("Tuyến & Đối tác cao nhất", "Top route & Operator")</span><strong style="font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@Model.TopRoute">@Model.TopRoute</strong><p class="muted" style="font-size: 11px; margin: 4px 0 0;">@T("Nhà xe:", "Operator:") @Model.TopCompany</p></div>
+</section>
+
+<!-- 1. BÁO CÁO DOANH THU THEO TUYẾN XE -->
+<section class="card" aria-labelledby="report-routes-title" style="margin-top: 24px;">
+    <div class="section-heading" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">
+        <div>
+            <p class="eyebrow">@T("CHI TIẾT MẠNG LƯỚI TUYẾN", "ROUTE NETWORK BREAKDOWN")</p>
+            <h2 id="report-routes-title" style="margin: 0; font-size: 20px;">@T("Doanh thu và hoa hồng theo tuyến xe", "Revenue and commission by route")</h2>
+            <p class="muted" style="margin: 4px 0 0; font-size: 12px;">@Format("Kỳ: {0} – {1} · {2} tuyến có phát sinh giao dịch", "Period: {0} – {1} · {2} routes with settled activity", Model.From.ToString("dd/MM/yyyy"), Model.To.ToString("dd/MM/yyyy"), Model.Rows.Count)</p>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>@T("Tuyến xe", "Route")</th>
+                    <th style="text-align: right;">@T("Số vé", "Tickets")</th>
+                    <th style="text-align: right;">@T("Doanh thu gộp (VND)", "Gross (VND)")</th>
+                    <th style="text-align: right;">@T("Hoàn tiền (VND)", "Refunds (VND)")</th>
+                    <th style="text-align: right;">@T("Doanh thu thuần (VND)", "Net (VND)")</th>
+                    <th style="text-align: center;">@T("Tỷ lệ", "Rate")</th>
+                    <th style="text-align: right;">@T("Hoa hồng bến (VND)", "Commission (VND)")</th>
+                    <th style="text-align: right;">@T("Thanh toán nhà xe (VND)", "Payout (VND)")</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach(var r in Model.Rows)
+            {
+                <tr>
+                    <td><strong>@r.RouteSummary</strong></td>
+                    <td style="text-align: right;">@r.TicketsSold.ToString("N0")</td>
+                    <td style="text-align: right;">@r.GrossRevenue.ToString("N0")</td>
+                    <td style="text-align: right;">@r.RefundedAmount.ToString("N0")</td>
+                    <td style="text-align: right; font-weight: 700; color: var(--green);">@r.NetRevenue.ToString("N0")</td>
+                    <td style="text-align: center;"><span class="badge">@((r.CommissionRate * 100m).ToString("0.#"))%</span></td>
+                    <td style="text-align: right; font-weight: 700;">@r.CommissionAmount.ToString("N0")</td>
+                    <td style="text-align: right;">@r.CompanyPayout.ToString("N0")</td>
+                </tr>
+            }
+            </tbody>
+            <tfoot>
+                <tr style="font-weight: 800; border-top: 2px solid var(--line);">
+                    <th>@T("Tổng cộng toàn bộ tuyến", "Total across all routes")</th>
+                    <th style="text-align: right;">@Model.Tickets.ToString("N0")</th>
+                    <th style="text-align: right;">@Model.Gross.ToString("N0")</th>
+                    <th style="text-align: right;">@Model.Refunds.ToString("N0")</th>
+                    <th style="text-align: right; color: var(--green);">@Model.Net.ToString("N0")</th>
+                    <th style="text-align: center;">@Model.AverageCommissionRate%</th>
+                    <th style="text-align: right;">@Model.Commission.ToString("N0")</th>
+                    <th style="text-align: right;">@Model.Payout.ToString("N0")</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    @if(Model.Rows.Count == 0) { <p class="empty-state">@T("Không có doanh thu đã thu hoặc hoàn tiền trong khoảng ngày này.", "No settled revenue or refunds in this date range.")</p> }
+</section>
+
+<!-- 2. BÁO CÁO DOANH THU THEO NHÀ XE / ĐỐI TÁC VẬN HÀNH -->
+<section class="card" aria-labelledby="report-companies-title" style="margin-top: 24px;">
+    <div class="section-heading" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">
+        <div>
+            <p class="eyebrow">@T("ĐỐI TÁC VẬN TẢI", "TRANSPORT PARTNERS")</p>
+            <h2 id="report-companies-title" style="margin: 0; font-size: 20px;">@T("Phân bổ doanh thu & Đối soát theo nhà xe", "Revenue allocation & payout by operator")</h2>
+            <p class="muted" style="margin: 4px 0 0; font-size: 12px;">@T("Số liệu phục vụ thanh quyết toán hợp đồng phân chia hoa hồng bến bãi theo nhà vận hành.", "Data used for settlement reconciliation and station commission contracts with each operator.")</p>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>@T("Nhà xe / Đối tác", "Operator / Partner")</th>
+                    <th style="text-align: right;">@T("Số chuyến chạy", "Trips")</th>
+                    <th style="text-align: right;">@T("Vé bán", "Tickets")</th>
+                    <th style="text-align: right;">@T("Doanh thu gộp (VND)", "Gross (VND)")</th>
+                    <th style="text-align: right;">@T("Tiền hoàn vé (VND)", "Refunds (VND)")</th>
+                    <th style="text-align: right;">@T("Doanh thu thuần (VND)", "Net (VND)")</th>
+                    <th style="text-align: right;">@T("Hoa hồng bến (VND)", "Commission (VND)")</th>
+                    <th style="text-align: right;">@T("Thực chi trả nhà xe (VND)", "Payout to operator (VND)")</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach(var c in Model.CompanyRows)
+            {
+                <tr>
+                    <td><strong>@c.CompanyName</strong></td>
+                    <td style="text-align: right;">@c.TripsCount.ToString("N0")</td>
+                    <td style="text-align: right;">@c.TicketsSold.ToString("N0")</td>
+                    <td style="text-align: right;">@c.GrossRevenue.ToString("N0")</td>
+                    <td style="text-align: right;">@c.RefundedAmount.ToString("N0")</td>
+                    <td style="text-align: right; font-weight: 700; color: var(--green);">@c.NetRevenue.ToString("N0")</td>
+                    <td style="text-align: right; font-weight: 700;">@c.CommissionAmount.ToString("N0")</td>
+                    <td style="text-align: right; font-weight: 800;">@c.CompanyPayout.ToString("N0")</td>
+                </tr>
+            }
+            </tbody>
+            <tfoot>
+                <tr style="font-weight: 800; border-top: 2px solid var(--line);">
+                    <th>@T("Tổng cộng theo đối tác", "Total by partners")</th>
+                    <th style="text-align: right;">@Model.CompanyRows.Sum(c => c.TripsCount).ToString("N0")</th>
+                    <th style="text-align: right;">@Model.CompanyRows.Sum(c => c.TicketsSold).ToString("N0")</th>
+                    <th style="text-align: right;">@Model.CompanyRows.Sum(c => c.GrossRevenue).ToString("N0")</th>
+                    <th style="text-align: right;">@Model.CompanyRows.Sum(c => c.RefundedAmount).ToString("N0")</th>
+                    <th style="text-align: right; color: var(--green);">@Model.CompanyRows.Sum(c => c.NetRevenue).ToString("N0")</th>
+                    <th style="text-align: right;">@Model.CompanyRows.Sum(c => c.CommissionAmount).ToString("N0")</th>
+                    <th style="text-align: right;">@Model.CompanyRows.Sum(c => c.CompanyPayout).ToString("N0")</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    @if(Model.CompanyRows.Count == 0) { <p class="empty-state">@T("Chưa có phát sinh số liệu nhà xe trong khoảng ngày này.", "No operator activity in this date range.")</p> }
+</section>
+
+<!-- 3. PHÂN BỔ KÊNH THANH TOÁN & ĐỐI SOÁT -->
+<section class="card" aria-labelledby="report-channels-title" style="margin-top: 24px;">
+    <div class="section-heading" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">
+        <div>
+            <p class="eyebrow">@T("KÊNH GIAO DỊCH", "PAYMENT CHANNELS")</p>
+            <h2 id="report-channels-title" style="margin: 0; font-size: 20px;">@T("Phương thức thanh toán & Đối soát tiền về", "Payment methods & cash flow reconciliation")</h2>
+            <p class="muted" style="margin: 4px 0 0; font-size: 12px;">@T("Tỷ trọng và lưu lượng dòng tiền giữa chuyển khoản trực tuyến VietQR và thu tiền mặt tại bến.", "Breakdown between online VietQR transfers and on-site cash receipts.")</p>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>@T("Phương thức thanh toán", "Payment method")</th>
+                    <th style="text-align: right;">@T("Giao dịch thành công", "Success count")</th>
+                    <th style="text-align: right;">@T("Tổng tiền thu (VND)", "Collected amount (VND)")</th>
+                    <th style="text-align: right;">@T("Giao dịch hoàn tiền", "Refund count")</th>
+                    <th style="text-align: right;">@T("Tiền hoàn lại (VND)", "Refunded amount (VND)")</th>
+                    <th style="text-align: right;">@T("Doanh thu thuần (VND)", "Net amount (VND)")</th>
+                    <th style="text-align: right;">@T("Tỷ trọng dòng tiền", "Share (%)")</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach(var ch in Model.ChannelRows)
+            {
+                var share = Model.Net > 0 ? Math.Round((ch.NetAmount / Model.Net) * 100m, 1) : 0m;
+                <tr>
+                    <td><strong>@ch.ChannelDisplay</strong></td>
+                    <td style="text-align: right;">@ch.SuccessCount.ToString("N0")</td>
+                    <td style="text-align: right;">@ch.SuccessAmount.ToString("N0")</td>
+                    <td style="text-align: right;">@ch.RefundedCount.ToString("N0")</td>
+                    <td style="text-align: right;">@ch.RefundedAmount.ToString("N0")</td>
+                    <td style="text-align: right; font-weight: 700; color: var(--green);">@ch.NetAmount.ToString("N0")</td>
+                    <td style="text-align: right;"><span class="badge">@share%</span></td>
+                </tr>
+            }
+            </tbody>
+            <tfoot>
+                <tr style="font-weight: 800; border-top: 2px solid var(--line);">
+                    <th>@T("Tổng cộng tất cả các kênh", "Total all payment channels")</th>
+                    <th style="text-align: right;">@Model.ChannelRows.Sum(c => c.SuccessCount).ToString("N0")</th>
+                    <th style="text-align: right;">@Model.ChannelRows.Sum(c => c.SuccessAmount).ToString("N0")</th>
+                    <th style="text-align: right;">@Model.ChannelRows.Sum(c => c.RefundedCount).ToString("N0")</th>
+                    <th style="text-align: right;">@Model.ChannelRows.Sum(c => c.RefundedAmount).ToString("N0")</th>
+                    <th style="text-align: right; color: var(--green);">@Model.ChannelRows.Sum(c => c.NetAmount).ToString("N0")</th>
+                    <th style="text-align: right;">100%</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</section>
+
+<!-- MỤC CHỮ KÝ HÀNH CHÍNH KHI IN BÁO CÁO -->
+<div class="print-signatures print-only" style="display: none; margin-top: 36px; padding-top: 20px;">
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; gap: 20px;">
+        <div>
+            <p style="margin: 0; font-size: 12px; font-weight: 800;">@T("NGƯỜI LẬP BÁO CÁO", "PREPARED BY")</p>
+            <p style="margin: 2px 0 0; font-size: 11px; color: #555;">@T("(Ký và ghi rõ họ tên)", "(Signature & Full name)")</p>
+            <div style="height: 75px;"></div>
+            <p style="margin: 0; font-size: 13px; font-weight: 700;">@(CurrentUser.Account?.FullName ?? "Administrator")</p>
+            <p style="margin: 2px 0 0; font-size: 11px; color: #444;">@Value(CurrentUser.Account?.Role ?? "Admin")</p>
+        </div>
+        <div>
+            <p style="margin: 0; font-size: 12px; font-weight: 800;">@T("KẾ TOÁN TRƯỞNG / ĐỐI SOÁT", "CHIEF ACCOUNTANT")</p>
+            <p style="margin: 2px 0 0; font-size: 11px; color: #555;">@T("(Ký và ghi rõ họ tên)", "(Signature & Full name)")</p>
+            <div style="height: 75px;"></div>
+            <p style="margin: 0; font-size: 13px; font-weight: 700;">@T("Phòng Tài chính - Kế toán", "Finance & Accounting Dept")</p>
+            <p style="margin: 2px 0 0; font-size: 11px; color: #444;">@T("Bộ phận đối soát doanh thu", "Revenue Reconciliation Unit")</p>
+        </div>
+        <div>
+            <p style="margin: 0; font-size: 12px; font-weight: 800;">@T("CHỦ SỞ HỮU / BAN GIÁM ĐỐC", "STATION OWNER / BOARD")</p>
+            <p style="margin: 2px 0 0; font-size: 11px; color: #555;">@T("(Ký tên, đóng dấu)", "(Signature & Seal)")</p>
+            <div style="height: 75px;"></div>
+            <p style="margin: 0; font-size: 13px; font-weight: 700;">@T("Ban Điều hành Bến xe", "Station Management Board")</p>
+            <p style="margin: 2px 0 0; font-size: 11px; color: #444;">BusGo Terminal Operations</p>
+        </div>
+    </div>
+</div>
+}

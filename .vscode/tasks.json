@@ -1,0 +1,7 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    { "label": "build BusGo", "type": "process", "command": "dotnet", "args": ["build", "${workspaceFolder}/BusGo.csproj"], "problemMatcher": "$msCompile", "group": { "kind": "build", "isDefault": true } },
+    { "label": "run BusGo", "type": "process", "command": "dotnet", "args": ["run", "--project", "${workspaceFolder}/BusGo.csproj"], "problemMatcher": [] }
+  ]
+}

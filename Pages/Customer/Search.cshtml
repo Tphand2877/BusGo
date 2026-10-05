@@ -1,0 +1,143 @@
+@page
+@model BusGo.Pages.Customer.SearchModel
+@{
+    ViewData["Title"] = T("Tìm chuyến xe", "Find bus trips");
+    ViewData["TripSearchFilters"] = new Dictionary<string, string?>
+    {
+        ["Company"] = Model.Company,
+        ["BusType"] = Model.BusType,
+        ["DeparturePeriod"] = Model.DeparturePeriod,
+        ["MinimumSeats"] = Model.MinimumSeats.ToString(),
+        ["Sort"] = Model.Sort
+    };
+}
+@if (Model.IsCounterStaff)
+{
+<div class="search-page-intro">
+    <p class="eyebrow">@T("BÁN VÉ TẠI QUẦY", "COUNTER TICKET SALES")</p>
+    <h1>@T("Lập vé cho khách", "Book tickets for passengers")</h1>
+    <p class="muted">@T("Tìm chuyến, chọn ghế và nhập thông tin hành khách vãng lai. Vé ghi nhận theo tài khoản nhân viên.", "Find a trip, choose seats and enter walk-in passenger details. Tickets are recorded under the staff account.")</p>
+    <div class="staff-counter-hints"><a asp-page="/Customer/Tickets">@T("Vé do tôi lập", "Tickets I issued")</a><a asp-page="/Customer/History">@T("Lịch sử bán vé", "Ticket sales history")</a><a asp-page="/Admin/Payments">@T("Đối soát thanh toán", "Payment reconciliation")</a></div>
+</div>
+}
+else
+{
+<div class="search-page-intro">
+    <p class="eyebrow">@T("LÊN KẾ HOẠCH, LÊN ĐƯỜNG", "PLAN YOUR JOURNEY, HIT THE ROAD")</p>
+    <h1>@T("Chuyến đi tiếp theo của bạn", "Your next journey")</h1>
+    <p class="muted">@T("Chọn giờ đi phù hợp. Tìm chỗ ngồi bạn thích.", "Choose a departure time that suits you. Find your preferred seat.")</p>
+</div>
+}
+@await Html.PartialAsync("_TripSearchPanel", new BusGo.Models.TripSearchPanelModel(Model.Origins, Model.Destinations, Model.Origin, Model.Destination, Model.Date))
+<div asp-validation-summary="All" class="alert" role="alert"></div>
+<div class="search-results-layout">
+    <aside class="search-filter-sidebar" aria-label="@T("Bộ lọc chuyến xe", "Bus trip filters")">
+        <details class="search-filter-panel" data-search-filters open>
+            <summary><span>@T("Bộ lọc chuyến xe", "Bus trip filters")</span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+            <form method="get" class="search-filters">
+                <input type="hidden" name="Origin" value="@Model.Origin" />
+                <input type="hidden" name="Destination" value="@Model.Destination" />
+                <input type="hidden" name="Date" value="@Model.Date?.ToString("yyyy-MM-dd")" />
+                <div class="field">
+                    <label asp-for="Company">@T("Nhà xe", "Operator")</label>
+                    <select asp-for="Company">
+                        <option value="">@T("Tất cả nhà xe", "All operators")</option>
+                        @if (!string.IsNullOrWhiteSpace(Model.Company) && !Model.Companies.Any(company => string.Equals(company.CompanyName, Model.Company, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            <option value="@Model.Company">@Model.Company</option>
+                        }
+                        @foreach (var company in Model.Companies)
+                        {
+                            <option value="@company.CompanyName">@company.CompanyName</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label asp-for="BusType">@T("Loại xe", "Bus type")</label>
+                    <select asp-for="BusType">
+                        <option value="">@T("Tất cả loại xe", "All bus types")</option>
+                        @if (!string.IsNullOrWhiteSpace(Model.BusType) && !Model.BusTypes.Contains(Model.BusType, StringComparer.OrdinalIgnoreCase))
+                        {
+                            <option value="@Model.BusType">@Value(Model.BusType)</option>
+                        }
+                        @foreach (var type in Model.BusTypes) { <option value="@type">@Value(type)</option> }
+                    </select>
+                </div>
+                <div class="field"><label asp-for="DeparturePeriod">@T("Giờ khởi hành", "Departure time")</label><select asp-for="DeparturePeriod"><option value="">@T("Mọi khung giờ", "Any time")</option><option value="early">@T("Trước 09:00", "Before 09:00")</option><option value="morning">09:00–12:00</option><option value="afternoon">12:00–17:00</option><option value="evening">@T("Sau 17:00", "After 17:00")</option></select></div>
+                <div class="field"><label asp-for="MinimumSeats">@T("Chỗ trống tối thiểu", "Minimum available seats")</label><select asp-for="MinimumSeats"><option value="0">@T("Không giới hạn", "No minimum")</option><option value="1">@T("Còn chỗ", "Seats available")</option><option value="4">@T("Từ 4 chỗ", "At least 4 seats")</option><option value="10">@T("Từ 10 chỗ", "At least 10 seats")</option></select></div>
+                <div class="field"><label asp-for="Sort">@T("Sắp xếp theo", "Sort by")</label><select asp-for="Sort"><option value="">@T("Giờ khởi hành sớm", "Earliest departure")</option><option value="price">@T("Giá thấp trước", "Lowest fare")</option><option value="seats">@T("Nhiều chỗ trống", "Most available seats")</option></select></div>
+                <div class="search-filter-actions">
+                    <button type="submit">@T("Áp dụng bộ lọc", "Apply filters")</button>
+                    <a asp-page="Search" asp-route-Origin="@Model.Origin" asp-route-Destination="@Model.Destination" asp-route-Date="@Model.Date?.ToString("yyyy-MM-dd")">@T("Xóa bộ lọc", "Clear filters")</a>
+                </div>
+            </form>
+        </details>
+    </aside>
+    <section class="search-results" aria-label="@T("Kết quả tìm chuyến xe", "Bus trip search results")">
+        @if (Model.Error is not null)
+        {
+            <div class="alert" role="alert">@Model.Error</div>
+        }
+        else if (ViewData.ModelState.IsValid)
+        {
+            <div class="search-results-heading">
+                <h2><strong>@Model.TotalTrips</strong> @T("chuyến phù hợp", "matching trips")</h2>
+                @if (Model.TotalPages > 0) { <span>@Format("Trang {0} / {1}", "Page {0} / {1}", Model.PageNumber, Model.TotalPages)</span> }
+            </div>
+            @if (Model.Trips.Count == 0)
+            {
+                <div class="empty-state search-empty-state">
+                    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="21" cy="21" r="12" stroke="currentColor" stroke-width="2"/><path d="m30 30 10 10M16 21h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    <h2>@T("Chưa có chuyến phù hợp", "No matching trips")</h2>
+                    <p>@T("Thử đổi ngày đi, điểm đến hoặc xóa bớt bộ lọc.", "Try another travel date or destination, or remove some filters.")</p>
+                    <a class="button secondary" asp-page="Search" asp-route-Origin="@Model.Origin" asp-route-Destination="@Model.Destination" asp-route-Date="@Model.Date?.ToString("yyyy-MM-dd")">@T("Xem lại các chuyến", "View trips again")</a>
+                </div>
+            }
+            <div class="search-trip-list">
+                @foreach (var trip in Model.Trips)
+                {
+                    var departure = trip.DepartureTime.Kind == DateTimeKind.Utc ? trip.DepartureTime.ToLocalTime() : trip.DepartureTime;
+                    var arrival = trip.ArrivalTime.Kind == DateTimeKind.Utc ? trip.ArrivalTime.ToLocalTime() : trip.ArrivalTime;
+                    <article class="trip-ticket" aria-label="@trip.Route — @trip.CompanyName">
+                        <div class="trip-ticket-main">
+                            <div class="trip-ticket-operator">
+                                <span class="trip-ticket-logo" aria-hidden="true">@trip.LogoText</span>
+                                <div><a asp-page="Company" asp-route-name="@trip.CompanyName">@trip.CompanyName</a><span class="trip-ticket-type">@Value(trip.BusType)</span></div>
+                                <span class="trip-ticket-date">@departure.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <div class="trip-ticket-journey">
+                                <div class="trip-ticket-stop"><time datetime="@departure.ToString("s")">@departure.ToString("HH:mm")</time><strong>@trip.Origin</strong></div>
+                                <div class="trip-ticket-track" aria-hidden="true"><span></span><svg viewBox="0 0 24 24" fill="none"><path d="M4 12h16m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span></span></div>
+                                <div class="trip-ticket-stop"><time datetime="@arrival.ToString("s")">@arrival.ToString("HH:mm")</time><strong>@trip.Destination</strong>@if (arrival.Date != departure.Date) { <span class="trip-ticket-arrival-date">@arrival.ToString("dd/MM/yyyy")</span> }</div>
+                            </div>
+                            <div class="trip-ticket-meta">
+                                <span class="trip-ticket-availability @(trip.IsAvailable ? "is-available" : "")">@trip.StatusBadgeText</span>
+                                @if (!string.IsNullOrWhiteSpace(trip.LicensePlate)) { <span>@Format("Biển số {0}", "License plate {0}", trip.LicensePlate)</span> }
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(trip.IntermediateStops)) { <p class="trip-ticket-stops">@Format("Điểm dừng: {0}", "Stops: {0}", trip.IntermediateStops)</p> }
+                        </div>
+                        <div class="trip-ticket-booking">
+                            <div><span class="trip-ticket-price-label">@T("Giá vé", "Fare")</span><strong class="trip-ticket-price">@trip.PriceDisplay</strong><span class="trip-ticket-price-unit">@T("/ hành khách", "/ passenger")</span></div>
+                            @if (trip.IsAvailable)
+                            {
+                                <a class="button" asp-page="Seats" asp-route-tripId="@trip.TripId" aria-label="@Format("Chọn ghế chuyến {0} lúc {1}", "Choose seats for {0} at {1}", trip.Route, departure.ToString("HH:mm"))">@T("Chọn ghế", "Choose seats") <span aria-hidden="true">→</span></a>
+                            }
+                            else
+                            {
+                                <span class="trip-ticket-unavailable">@T("Không còn mở bán", "No longer on sale")</span>
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+            @if (Model.TotalPages > 1)
+            {
+                <nav class="pagination search-pagination" aria-label="@T("Phân trang kết quả chuyến xe", "Bus trip results pagination")">
+                    @if (Model.PageNumber > 1) { <a class="button secondary" asp-page="Search" asp-route-Origin="@Model.Origin" asp-route-Destination="@Model.Destination" asp-route-Date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-Company="@Model.Company" asp-route-BusType="@Model.BusType" asp-route-DeparturePeriod="@Model.DeparturePeriod" asp-route-MinimumSeats="@Model.MinimumSeats" asp-route-Sort="@Model.Sort" asp-route-PageNumber="@(Model.PageNumber - 1)">@T("← Trang trước", "← Previous page")</a> }
+                    <span>@Format("Trang {0} / {1}", "Page {0} / {1}", Model.PageNumber, Model.TotalPages)</span>
+                    @if (Model.PageNumber < Model.TotalPages) { <a class="button secondary" asp-page="Search" asp-route-Origin="@Model.Origin" asp-route-Destination="@Model.Destination" asp-route-Date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-Company="@Model.Company" asp-route-BusType="@Model.BusType" asp-route-DeparturePeriod="@Model.DeparturePeriod" asp-route-MinimumSeats="@Model.MinimumSeats" asp-route-Sort="@Model.Sort" asp-route-PageNumber="@(Model.PageNumber + 1)">@T("Trang sau →", "Next page →")</a> }
+                </nav>
+            }
+        }
+    </section>
+</div>

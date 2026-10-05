@@ -1,0 +1,25 @@
+@page
+@model BusGo.Pages.Account.LoginModel
+@{ ViewData["Title"] = T("Đăng nhập", "Sign in"); }
+<div class="auth-layout">
+<section class="auth-intro" aria-labelledby="login-heading">
+    <p class="eyebrow">@T("HÀNH TRÌNH BẮT ĐẦU TỪ ĐÂY", "YOUR JOURNEY STARTS HERE")</p>
+    <h1 id="login-heading">@T("Chào bạn,", "Hello,")<br />@T("mừng trở lại.", "welcome back.")</h1>
+    <p>@T("Những chuyến đi, những điểm đến và vé xe của bạn — cùng một nơi.", "Your trips, destinations and tickets — all in one place.")</p>
+    <ol class="auth-highlights"><li>@T("Tìm chuyến phù hợp với lịch trình", "Find a trip that fits your schedule")</li><li>@T("Chọn ghế và kiểm tra trước khi đặt", "Choose your seats and review before booking")</li><li>@T("Theo dõi trạng thái vé trong tài khoản", "Track your tickets from your account")</li></ol>
+    <a asp-page="/Customer/Search">@T("Khám phá chuyến xe", "Explore trips") <span aria-hidden="true">→</span></a>
+</section>
+<section class="card auth-card" aria-labelledby="login-form-heading">
+<p class="eyebrow">@T("TÀI KHOẢN BUSGO", "BUSGO ACCOUNT")</p>
+<h2 id="login-form-heading">@T("Đăng nhập", "Sign in")</h2>
+<p class="muted">@T("Tiếp tục đặt vé và quản lý hành trình của bạn.", "Continue booking and managing your journeys.")</p>
+<form method="post" class="form-grid">
+    <div asp-validation-summary="All" class="alert" role="alert"></div>
+    <input type="hidden" asp-for="ReturnUrl" />
+    <div class="field"><label asp-for="Username">@T("Tên đăng nhập hoặc email", "Username or email")</label><input asp-for="Username" autocomplete="username" required /></div>
+    <div class="field"><label asp-for="Password">@T("Mật khẩu", "Password")</label><input asp-for="Password" autocomplete="current-password" required /></div>
+    <button class="button" type="submit">@T("Đăng nhập", "Sign in")</button>
+</form>
+<p class="auth-switch">@T("Chưa có tài khoản?", "New to BusGo?") <a asp-page="Register">@T("Tạo tài khoản", "Create account")</a></p>
+</section>
+</div>

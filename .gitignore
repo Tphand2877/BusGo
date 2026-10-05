@@ -1,0 +1,13 @@
+bin/
+obj/
+Logs/
+.vs/
+*.user
+appsettings.Development.json
+appsettings.Production.json
+secrets.json
+.env
+*.log
+.agents/
+publish/
+*.publishsettings

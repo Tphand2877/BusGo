@@ -1,0 +1,161 @@
+@page
+@model BusGo.Pages.Admin.IndexModel
+@{ ViewData["Title"] = T("Tổng quan vận hành", "Operations overview"); }
+<div class="staff-dashboard">
+    <header class="page-header">
+        <div>
+            <p class="eyebrow">@T("BUSGO / ĐIỀU HÀNH", "BUSGO / OPERATIONS")</p>
+            <h1>@T("Tổng quan vận hành", "Operations overview")</h1>
+            <p class="muted">@T("Theo dõi lịch chạy, xử lý thanh toán và phục vụ khách tại bến.", "Monitor schedules, process payments and serve passengers at the station.")</p>
+            <div class="staff-scope"><span>@T("Bến làm việc:", "Working station:") <strong>@Model.Station</strong></span><span>@T("Số liệu toàn hệ thống", "System-wide figures")</span></div>
+        </div>
+        <a class="button secondary" asp-page="Index">@T("Làm mới số liệu", "Refresh figures")</a>
+    </header>
+    <partial name="_AdminValidation" />
+
+    <section class="staff-task-section" aria-labelledby="staff-tasks-title">
+        <div class="staff-section-heading"><div><h2 id="staff-tasks-title">@T("Công việc nhanh", "Quick tasks")</h2><p class="muted">@T("Các thao tác thường dùng trong ca làm việc.", "Common tasks during your shift.")</p></div></div>
+        <div class="staff-task-grid">
+            <a class="staff-task" asp-page="Trips"><span class="staff-task-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2M8 14h3m-3 4h7" /></svg><span class="staff-task-kicker">@T("Điều hành", "Operations")</span><span class="staff-task-arrow" aria-hidden="true">↗</span></span><strong>@T("Quản lý lịch chạy", "Manage schedules")</strong><span>@T("Xem chuyến, phân xe và cập nhật lịch trình.", "View trips, assign vehicles and update schedules.")</span></a>
+            @if (User.IsInRole("Owner"))
+            {
+                <a class="staff-task" asp-page="Accounts"><span class="staff-task-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8M19 8v6m-3-3h6" /></svg><span class="staff-task-kicker">@T("Nhân sự & Bảo mật", "HR & Security")</span><span class="staff-task-arrow" aria-hidden="true">↗</span></span><strong>@T("Quản lý tài khoản & Quyền", "Accounts & Access")</strong><span>@T("Cấp hoặc gỡ quyền Quản trị viên và theo dõi kiểm toán.", "Grant or revoke Administrator roles and audit changes.")</span></a>
+            }
+            else
+            {
+                <a class="staff-task" asp-page="CheckIn"><span class="staff-task-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m8 0h5v-5M7 12l3 3 7-7" /></svg><span class="staff-task-kicker">@T("Tại bến", "At the station")</span><span class="staff-task-arrow" aria-hidden="true">↗</span></span><strong>@T("Soát vé lên xe", "Boarding check-in")</strong><span>@T("Tra mã vé và kiểm tra điều kiện lên xe.", "Look up ticket codes and check boarding eligibility.")</span></a>
+            }
+            <a class="staff-task" asp-page="Payments"><span class="staff-task-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3zM3 10h18M7 15h4" /></svg><span class="staff-task-kicker">@T("Đối soát", "Settlement")</span><span class="staff-task-arrow" aria-hidden="true">↗</span></span><strong>@T("Quản lý thanh toán", "Manage payments")</strong><span>@T("Kiểm tra giao dịch, xác nhận thu tiền và hoàn tiền.", "Review transactions, confirm receipts and process refunds.")</span></a>
+        </div>
+    </section>
+
+    <div class="staff-service-grid">
+    @if (Model.Loaded && Model.Stats is { } s)
+    {
+        <section class="staff-settlement @(s.PendingSettlementCount > 0 ? "staff-settlement-pending" : "")" aria-labelledby="staff-settlement-title">
+            <div>
+                <p class="eyebrow">@T("ĐỐI SOÁT TOÀN HỆ THỐNG", "SYSTEM-WIDE SETTLEMENT")</p>
+                <h2 id="staff-settlement-title">@(s.PendingSettlementCount > 0 ? T("Thanh toán cần xử lý", "Payments requiring attention") : T("Không có giao dịch chờ", "No pending transactions"))</h2>
+                <p><strong>@s.PendingSettlementCount @T("giao dịch", "transactions") · @s.PendingSettlementAmountDisplay</strong></p>
+                <p class="muted">@T("Khoản chờ chưa được tính vào doanh thu đã thu.", "Pending amounts are not included in collected revenue.")</p>
+            </div>
+            <a class="button secondary" asp-page="Payments" asp-route-status="Pending">@T("Xem giao dịch chờ", "View pending transactions") <span aria-hidden="true">→</span></a>
+        </section>
+    }
+
+    @if (!User.IsInRole("Owner"))
+    {
+        <section class="staff-counter-entry" aria-labelledby="staff-counter-title">
+            <div>
+                <p class="eyebrow">@T("Phục vụ khách tại bến", "Passenger service at the station")</p>
+                <h2 id="staff-counter-title">@T("Bán vé tại quầy", "Counter ticket sales")</h2>
+                <p>@T("Tìm chuyến, chọn ghế và nhập thông tin hành khách. Vé được ghi nhận theo tài khoản đang lập.", "Find a trip, select seats and enter passenger details. Tickets are recorded under the issuing account.")</p>
+            </div>
+            <div class="staff-counter-actions">
+                <a class="button" asp-page="/Customer/Search">@T("Lập vé cho khách", "Issue a passenger ticket") <span aria-hidden="true">→</span></a>
+                <a asp-page="/Customer/Tickets">@T("Vé do tôi lập", "Tickets I issued")</a>
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="staff-counter-entry" style="background: light-dark(linear-gradient(145deg, #184638, #102e24), linear-gradient(145deg, #1b382b, #10221a));" aria-labelledby="owner-gov-title">
+            <div>
+                <p class="eyebrow" style="color: var(--lime);">@T("ĐIỀU HÀNH & NHÂN SỰ", "GOVERNANCE & ACCESS")</p>
+                <h2 id="owner-gov-title">@T("Quản lý tài khoản & Phân quyền", "Account & Access Governance")</h2>
+                <p>@T("Cấp hoặc thu hồi quyền Quản trị viên, theo dõi nhật ký kiểm toán và quản lý nhân sự toàn hệ thống.", "Grant or revoke Administrator permissions, monitor audit logs and manage system-wide staff accounts.")</p>
+            </div>
+            <div class="staff-counter-actions">
+                <a class="button" asp-page="Accounts" style="background: var(--lime); color: #123e30; border-color: var(--lime);">@T("Mở quản lý tài khoản", "Manage accounts") <span aria-hidden="true">→</span></a>
+                <a asp-page="Reports">@T("Báo cáo doanh thu & hoa hồng", "Revenue & commission reports")</a>
+            </div>
+        </section>
+    }
+    </div>
+
+    @if (Model.Loaded && Model.Stats is { } stats)
+    {
+        <section class="card" aria-labelledby="staff-departures-title">
+            <div class="staff-section-heading">
+                <div><p class="eyebrow">@T("LỊCH TRÌNH", "SCHEDULES")</p><h2 id="staff-departures-title">@T("Chuyến sắp khởi hành", "Upcoming departures")</h2><p class="muted">@T("6 chuyến gần nhất toàn hệ thống · Giờ địa phương.", "Next 6 departures system-wide · Local time.")</p></div>
+                <div class="staff-section-links"><a class="button secondary small" asp-page="Trips">@T("Tất cả lịch chạy", "All schedules") <span aria-hidden="true">→</span></a>@if (!User.IsInRole("Owner")) { <a asp-page="CheckIn">@T("Mở soát vé", "Open check-in")</a> }</div>
+            </div>
+            @if (Model.Trips.Count == 0)
+            {
+                <p class="empty-state">@T("Chưa có chuyến sắp khởi hành. Mở quản lý lịch chạy để kiểm tra và lập lịch.", "No upcoming departures. Open schedule management to review and schedule trips.")</p>
+            }
+            else
+            {
+                <div class="table-wrap" role="region" aria-label="@T("Danh sách chuyến sắp khởi hành", "Upcoming departures")" tabindex="0">
+                    <table><thead><tr><th scope="col">@T("Tuyến xe", "Route")</th><th scope="col">@T("Biển số", "License plate")</th><th scope="col">@T("Khởi hành", "Departure")</th><th scope="col">@T("Đến dự kiến", "Expected arrival")</th><th scope="col">@T("Giá vé / ghế", "Fare / seat")</th></tr></thead><tbody>
+                    @foreach (var t in Model.Trips)
+                    {
+                        <tr><td>@t.Route</td><td>@t.LicensePlate</td><td>@t.DepartureFormatted</td><td>@t.ArrivalFormatted</td><td>@t.PriceDisplay</td></tr>
+                    }
+                    </tbody></table>
+                </div>
+            }
+        </section>
+
+        <section class="staff-finances" aria-labelledby="staff-finances-title">
+            <div class="staff-section-heading">
+                <div><h2 id="staff-finances-title">@T("Tài chính toàn hệ thống", "System-wide finances")</h2><p class="muted">@T("Lũy kế theo sổ giao dịch; không phải doanh thu riêng của bến hoặc ca bán vé.", "Ledger totals; not revenue specific to a station or ticket-selling shift.")</p></div>
+                <a asp-page="Reports">@T("Xem báo cáo", "View reports")</a>
+            </div>
+            <div class="stats">
+                <div class="stat"><span>@T("Doanh thu thuần đã thu", "Collected net revenue")</span><strong>@stats.TotalRevenueDisplay</strong><p>@T("Giao dịch thành công trừ khoản đã hoàn.", "Successful transactions less refunded amounts.")</p></div>
+                <div class="stat"><span>@T("Chờ xác nhận thanh toán", "Awaiting payment confirmation")</span><strong>@stats.PendingSettlementAmountDisplay</strong><p>@Format("{0} giao dịch chưa đối soát.", "{0} unsettled transactions.", stats.PendingSettlementCount)</p></div>
+                <div class="stat"><span>@T("Số tiền đã hoàn", "Refunded amount")</span><strong>@stats.RefundedAmountDisplay</strong><p>@T("Theo giao dịch có trạng thái đã hoàn.", "Based on transactions marked as refunded.")</p></div>
+                <div class="stat"><span>@T("Vé đã thanh toán / sử dụng", "Paid / used tickets")</span><strong>@stats.TicketsSold</strong><p>@T("Không bao gồm vé chưa thanh toán hoặc đã hủy.", "Excludes unpaid or cancelled tickets.")</p></div>
+            </div>
+        </section>
+
+        <section class="card" aria-labelledby="staff-management-title">
+            <div class="staff-section-heading"><div><h2 id="staff-management-title">@T("Quản lý hệ thống", "System management")</h2><p class="muted">@T("Danh mục và quy mô toàn hệ thống.", "System-wide directories and scale.")</p></div></div>
+            <div class="staff-management-grid">
+                <a asp-page="Routes"><strong>@T("Tuyến xe", "Route")</strong><span>@Format("{0} tuyến", "{0} routes", stats.RouteCount)</span></a>
+                <a asp-page="Buses"><strong>@T("Đội xe", "Fleet")</strong><span>@Format("{0} xe", "{0} vehicles", stats.BusCount)</span></a>
+                <a asp-page="Trips"><strong>@T("Lịch chạy", "Schedules")</strong><span>@Format("{0} chuyến chưa đến giờ khởi hành", "{0} departures not yet due", stats.TripCount)</span></a>
+                <a asp-page="Accounts"><strong>@T("Tài khoản", "Accounts")</strong><span>@Format("{0} tài khoản khách hàng", "{0} customer accounts", stats.CustomerCount)</span></a>
+            </div>
+        </section>
+
+        <section class="card" aria-labelledby="staff-bookings-title">
+            <div class="staff-section-heading"><div><h2 id="staff-bookings-title">@T("Vé được lập gần đây", "Recently issued tickets")</h2><p class="muted">@T("Tối đa 8 vé mới nhất trên toàn hệ thống, gồm cả vé chưa thanh toán. Chọn mã vé để tra cứu và soát vé.", "Up to 8 newest tickets system-wide, including unpaid tickets. Select a ticket code to look up and check in.")</p></div></div>
+            @if (Model.Bookings.Count == 0)
+            {
+                <p class="empty-state">@T("Hệ thống chưa ghi nhận vé nào.", "No tickets have been recorded.")</p>
+            }
+            else
+            {
+                <div class="table-wrap" role="region" aria-label="@T("Danh sách vé được lập gần đây", "Recently issued tickets")" tabindex="0">
+                    <table><thead><tr><th scope="col">@T("Mã vé", "Ticket code")</th><th scope="col">@T("Hành khách", "Passenger")</th><th scope="col">@T("Tuyến / ghế", "Route / seat")</th><th scope="col">@T("Tổng tiền vé", "Total fare")</th><th scope="col">@T("Trạng thái vé", "Ticket status")</th><th scope="col">@T("Thời gian lập", "Issued at")</th></tr></thead><tbody>
+                    @foreach (var b in Model.Bookings)
+                    {
+                        <tr><td><a asp-page="CheckIn" asp-route-code="@b.TicketCode">@b.TicketCode</a></td><td>@b.PassengerDisplay</td><td>@b.RouteName<br />@T("Ghế", "Seat") @b.SeatNumber</td><td>@b.PriceDisplay</td><td><span class="badge">@Value(b.Status)</span></td><td>@b.BookingTimeDisplay</td></tr>
+                    }
+                    </tbody></table>
+                </div>
+            }
+        </section>
+
+        <details class="card staff-fleet">
+            <summary>@T("Tra cứu nhanh đội xe toàn hệ thống", "Quick system-wide fleet lookup")</summary>
+            @if (Model.Buses.Count == 0)
+            {
+                <p class="empty-state">@T("Chưa có xe được đăng ký trong hệ thống.", "No vehicles have been registered.")</p>
+            }
+            else
+            {
+                <div class="table-wrap" role="region" aria-label="@T("Danh sách đội xe", "Fleet list")" tabindex="0">
+                    <table><thead><tr><th scope="col">@T("Xe / loại xe", "Vehicle / bus type")</th><th scope="col">@T("Nhà xe", "Operator")</th><th scope="col">@T("Tuyến xe", "Route")</th><th scope="col">@T("Số chỗ", "Seats")</th><th scope="col">@T("Tài xế", "Driver")</th></tr></thead><tbody>
+                    @foreach (var b in Model.Buses)
+                    {
+                        <tr><td><a asp-page="Buses" asp-route-editId="@b.BusId">@b.LicensePlate</a><br />@Value(b.BusType)</td><td>@b.CompanyName</td><td>@b.RouteName</td><td>@b.SeatCount</td><td>@b.DriverName<br />@b.DriverPhone</td></tr>
+                    }
+                    </tbody></table>
+                </div>
+            }
+        </details>
+    }
+</div>

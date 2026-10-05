@@ -1,0 +1,23 @@
+@page
+@model BusGo.Pages.Admin.TripsModel
+@{ ViewData["Title"] = T("Lịch chạy", "Trip schedules"); }
+<header class="page-header"><div><p class="eyebrow">@T("Điều hành", "Operations")</p><h1>@T("Lịch chạy", "Trip schedules")</h1><p class="muted">@Format("Bến: {0}. Giờ theo đồng hồ lịch địa phương được cấu hình của ứng dụng.", "Station: {0}. Times use the application's configured local schedule clock.", Model.Station)</p></div></header>
+<partial name="_AdminValidation" />
+<section class="card"><h2>@(Model.Input.Id == 0 ? T("Lập lịch chuyến", "Schedule departure") : T("Sửa chuyến", "Edit departure"))</h2><form method="post" asp-page-handler="Save"><input asp-for="Input.Id" type="hidden" /><div class="form-grid">
+<div class="field"><label asp-for="Input.RouteId">@T("Tuyến xe", "Route")</label><select asp-for="Input.RouteId"><option value="">@T("Chọn tuyến", "Choose route")</option>@foreach(var r in Model.Routes) { <option value="@r.RouteId">@r.DisplayName</option> }</select></div>
+<div class="field"><label asp-for="Input.BusId">@T("Xe", "Vehicle")</label><select asp-for="Input.BusId"><option value="">@T("Chọn xe", "Choose vehicle")</option>@foreach(var b in Model.Buses) { <option value="@b.BusId">@b.LicensePlate · @b.CompanyName (@b.SeatCount @T("chỗ", "seats"))</option> }</select></div>
+<div class="field"><label asp-for="Input.Departure">@T("Khởi hành", "Departure")</label><input asp-for="Input.Departure" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" /></div>
+<div class="field"><label asp-for="Input.Arrival">@T("Đến dự kiến", "Arrival")</label><input asp-for="Input.Arrival" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" /></div>
+<div class="field"><label asp-for="Input.Price">@T("Giá vé (VND)", "Fare (VND)")</label><input asp-for="Input.Price" type="number" step="0.01" min="0" /></div>
+</div><div class="actions"><button>@T("Lưu chuyến", "Save departure")</button><a class="button secondary" asp-page="Trips">@T("Xóa / hủy chỉnh sửa", "Clear / cancel edit")</a></div></form><p class="muted">@T("Không chấp nhận lịch xe trùng nhau. Chuyến có vé đang hoạt động không thể đổi phân công.", "Overlapping bus schedules are refused. Trips with active bookings cannot be reassigned.")</p></section>
+@if(Model.Loaded)
+{
+<section class="card"><h2>@T("Chuyến tại bến", "Station departures")</h2><div class="table-wrap"><table><thead><tr><th>@T("Tuyến / xe", "Route / vehicle")</th><th>@T("Khởi hành / đến dự kiến", "Departure / arrival")</th><th>@T("Giá vé", "Fare")</th><th>@T("Trạng thái", "Status")</th><th>@T("Thao tác", "Actions")</th></tr></thead><tbody>
+@foreach(var t in Model.Trips)
+{
+<tr><td>@t.Route<br />@t.LicensePlate</td><td>@t.DepartureFormatted<br />@t.ArrivalFormatted</td><td>@t.PriceDisplay</td><td><span class="badge">@Value(t.Status)</span></td><td><a class="button secondary" asp-route-editId="@t.TripId">@T("Chỉnh sửa", "Edit")</a>
+@if(t.CanCancel) { <details><summary>@T("Hủy chuyến", "Cancel trip")</summary><form method="post" asp-page-handler="Cancel" data-confirm="@T("Hủy chuyến này và cập nhật tất cả vé và thanh toán liên quan?", "Cancel this departure and update every associated ticket and payment?")"><input type="hidden" name="id" value="@t.TripId" /><label>@T("Lý do hủy", "Cancellation reason")<input name="reason" maxlength="500" /></label><button class="button danger">@T("Hủy chuyến", "Cancel departure")</button></form></details> }
+<form method="post" asp-page-handler="Delete" data-confirm="@T("Xóa vĩnh viễn chuyến này? Lịch sử vé có thể ngăn việc xóa.", "Permanently delete this trip? Ticket history may prevent deletion.")"><input type="hidden" name="id" value="@t.TripId" /><button class="button danger">@T("Xóa", "Delete")</button></form></td></tr>
+}
+</tbody></table></div>@if(Model.Trips.Count == 0) { <p class="empty-state">@T("Không có chuyến trong phạm vi bến này.", "No departures in this station scope.")</p> }</section>
+}

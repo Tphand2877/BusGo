@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="The {0} field is required." xml:space="preserve"><value>Vui lòng nhập {0}.</value></data>
+  <data name="The field {0} must be a string with a maximum length of {1}." xml:space="preserve"><value>{0} không được dài quá {1} ký tự.</value></data>
+  <data name="The field {0} must be a string with a minimum length of {2} and a maximum length of {1}." xml:space="preserve"><value>{0} phải có từ {2} đến {1} ký tự.</value></data>
+  <data name="The field {0} must be a string with a minimum length of {1}." xml:space="preserve"><value>{0} phải có ít nhất {1} ký tự.</value></data>
+  <data name="The field {0} must be between {1} and {2}." xml:space="preserve"><value>{0} phải nằm trong khoảng {1} đến {2}.</value></data>
+  <data name="The {0} field is not a valid e-mail address." xml:space="preserve"><value>{0} không phải địa chỉ email hợp lệ.</value></data>
+  <data name="The {0} field is not a valid phone number." xml:space="preserve"><value>{0} không phải số điện thoại hợp lệ.</value></data>
+  <data name="'{0}' and '{1}' do not match." xml:space="preserve"><value>{0} và {1} không khớp.</value></data>
+  <data name="The field {0} must match the regular expression '{1}'." xml:space="preserve"><value>{0} không đúng định dạng yêu cầu.</value></data>
+  <data name="The field {0} must be a string or array type with a maximum length of '{1}'." xml:space="preserve"><value>{0} không được dài quá {1} ký tự.</value></data>
+  <data name="The field {0} must be a string or array type with a minimum length of '{1}'." xml:space="preserve"><value>{0} phải có ít nhất {1} ký tự.</value></data>
+  <data name="Username cannot contain spaces." xml:space="preserve"><value>Tên đăng nhập không được chứa khoảng trắng.</value></data>
+  <data name="Phone must contain 8 to 15 digits with an optional leading +." xml:space="preserve"><value>Số điện thoại phải gồm 8 đến 15 chữ số, có thể bắt đầu bằng dấu +.</value></data>
+  <data name="Username" xml:space="preserve"><value>Tên đăng nhập</value></data>
+  <data name="Password" xml:space="preserve"><value>Mật khẩu</value></data>
+  <data name="ConfirmPassword" xml:space="preserve"><value>Xác nhận mật khẩu</value></data>
+  <data name="FullName" xml:space="preserve"><value>Họ và tên</value></data>
+  <data name="Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Phone" xml:space="preserve"><value>Số điện thoại</value></data>
+  <data name="PassengerName" xml:space="preserve"><value>Họ tên hành khách</value></data>
+  <data name="PassengerPhone" xml:space="preserve"><value>Điện thoại hành khách</value></data>
+  <data name="Amenities" xml:space="preserve"><value>Tiện ích</value></data>
+  <data name="BusId" xml:space="preserve"><value>Xe</value></data>
+  <data name="BusType" xml:space="preserve"><value>Loại xe</value></data>
+  <data name="Color" xml:space="preserve"><value>Màu sắc</value></data>
+  <data name="CompanyName" xml:space="preserve"><value>Tên nhà xe</value></data>
+  <data name="DepartureTimeNote" xml:space="preserve"><value>Giờ chạy</value></data>
+  <data name="Destination" xml:space="preserve"><value>Điểm đến</value></data>
+  <data name="Distance" xml:space="preserve"><value>Khoảng cách</value></data>
+  <data name="DriverName" xml:space="preserve"><value>Tên tài xế</value></data>
+  <data name="DriverPhone" xml:space="preserve"><value>Điện thoại tài xế</value></data>
+  <data name="Hotline" xml:space="preserve"><value>Đường dây nóng</value></data>
+  <data name="InspectionNumber" xml:space="preserve"><value>Số kiểm định</value></data>
+  <data name="IntermediateStops" xml:space="preserve"><value>Điểm dừng</value></data>
+  <data name="LicensePlate" xml:space="preserve"><value>Biển số xe</value></data>
+  <data name="Make" xml:space="preserve"><value>Hãng sản xuất</value></data>
+  <data name="Model" xml:space="preserve"><value>Mẫu xe</value></data>
+  <data name="NewDestination" xml:space="preserve"><value>Điểm đến mới</value></data>
+  <data name="NewOrigin" xml:space="preserve"><value>Điểm đi mới</value></data>
+  <data name="OperatingArea" xml:space="preserve"><value>Khu vực hoạt động</value></data>
+  <data name="OperationType" xml:space="preserve"><value>Loại hình vận tải</value></data>
+  <data name="Origin" xml:space="preserve"><value>Điểm đi</value></data>
+  <data name="Price" xml:space="preserve"><value>Giá vé</value></data>
+  <data name="RegisteredEntity" xml:space="preserve"><value>Đơn vị đăng ký</value></data>
+  <data name="RegistrationNumber" xml:space="preserve"><value>Số đăng ký</value></data>
+  <data name="RouteId" xml:space="preserve"><value>Tuyến xe</value></data>
+  <data name="SeatCount" xml:space="preserve"><value>Số ghế</value></data>
+  <data name="SelectedLanguage" xml:space="preserve"><value>Ngôn ngữ</value></data>
+  <data name="Date" xml:space="preserve"><value>Ngày khởi hành</value></data>
+  <data name="Company" xml:space="preserve"><value>Nhà xe</value></data>
+  <data name="DeparturePeriod" xml:space="preserve"><value>Khoảng giờ đi</value></data>
+  <data name="MinimumSeats" xml:space="preserve"><value>Số ghế tối thiểu</value></data>
+  <data name="Sort" xml:space="preserve"><value>Sắp xếp</value></data>
+  <data name="PageNumber" xml:space="preserve"><value>Số trang</value></data>
+  <data name="Name" xml:space="preserve"><value>Tên nhà xe</value></data>
+  <data name="DiscountName" xml:space="preserve"><value>Tên ưu đãi</value></data>
+  <data name="DiscountPercent" xml:space="preserve"><value>Mức giảm (%)</value></data>
+  <data name="DiscountStartsAt" xml:space="preserve"><value>Thời điểm bắt đầu</value></data>
+  <data name="DiscountEndsAt" xml:space="preserve"><value>Thời điểm kết thúc</value></data>
+  <data name="DiscountTargetTiers" xml:space="preserve"><value>Hạng áp dụng</value></data>
+</root>

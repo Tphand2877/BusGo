@@ -1,0 +1,25 @@
+@page
+@model BusGo.Pages.Account.RegisterModel
+@{ ViewData["Title"] = T("Tạo tài khoản", "Create account"); }
+<div class="auth-layout">
+<section class="auth-intro" aria-labelledby="register-heading">
+    <p class="eyebrow">@T("THÊM MỘT ĐIỂM ĐẾN MỚI", "A NEW DESTINATION AWAITS")</p>
+    <h1 id="register-heading">@T("Đi đâu tiếp,", "Where to next,")<br />@T("cùng BusGo.", "with BusGo.")</h1>
+    <p>@T("Tạo tài khoản để đặt chỗ, lưu thông tin hành khách và xem lại những chuyến đã đi.", "Create an account to book seats, save passenger details and revisit past journeys.")</p>
+    <ol class="auth-highlights"><li>@T("Một tài khoản cho các chuyến đi", "One account for all your journeys")</li><li>@T("Thông tin đặt chỗ dễ theo dõi", "Booking details you can track")</li><li>@T("Chủ động quản lý vé của bạn", "Manage your tickets yourself")</li></ol>
+    <a asp-page="/Customer/Search">@T("Xem chuyến trước khi đăng ký", "Browse trips before signing up") <span aria-hidden="true">→</span></a>
+</section>
+<section class="card auth-card" aria-labelledby="register-form-heading">
+<p class="eyebrow">@T("TÀI KHOẢN MỚI", "NEW ACCOUNT")</p><h2 id="register-form-heading">@T("Tạo tài khoản", "Create account")</h2>
+<p class="muted">@T("Điền thông tin bên dưới để bắt đầu.", "Fill in your details to get started.")</p>
+<form method="post" class="form-grid">
+<div asp-validation-summary="All" class="alert" role="alert"></div>
+<div class="field"><label asp-for="FullName">@T("Họ và tên", "Full name")</label><input asp-for="FullName" autocomplete="name" required /></div>
+<div class="field"><label asp-for="Username">@T("Tên đăng nhập", "Username")</label><input asp-for="Username" autocomplete="username" required /></div>
+<div class="field"><label asp-for="Email">@T("Email (không bắt buộc)", "Email (optional)")</label><input asp-for="Email" autocomplete="email" /></div>
+<div class="field"><label asp-for="Phone">@T("Số điện thoại (không bắt buộc)", "Phone number (optional)")</label><input asp-for="Phone" autocomplete="tel" /></div>
+<div class="field"><label asp-for="Password">@T("Mật khẩu", "Password")</label><input asp-for="Password" autocomplete="new-password" required /><small class="muted">@T("8–128 ký tự, gồm chữ hoa, chữ thường và chữ số.", "8–128 characters, including uppercase, lowercase and digits.")</small></div>
+<div class="field"><label asp-for="ConfirmPassword">@T("Nhập lại mật khẩu", "Confirm password")</label><input asp-for="ConfirmPassword" autocomplete="new-password" required /></div>
+<button class="button" type="submit">@T("Tạo tài khoản", "Create account")</button>
+</form><p class="auth-switch">@T("Đã có tài khoản?", "Already have an account?") <a asp-page="Login">@T("Đăng nhập", "Sign in")</a></p></section>
+</div>

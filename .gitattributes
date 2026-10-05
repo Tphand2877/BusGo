@@ -1,0 +1,22 @@
+# Default behavior for text files
+* text=auto eol=lf
+*.cs text eol=lf
+*.cshtml text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.md text eol=lf
+*.resx text eol=lf
+*.csproj text eol=lf
+
+# Preserve byte-for-byte exact content for migration SQL scripts
+# Crucial: DatabaseMigrator verifies SHA-256 checksums of these files
+Data/*.sql -text
+
+# Binary assets
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary
+*.ttf binary
+*.ico binary

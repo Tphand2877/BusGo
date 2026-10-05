@@ -1,0 +1,182 @@
+@{
+    var admin = User.IsInRole("Admin");
+    var isOwner = User.IsInRole("Owner");
+    var path = Context.Request.Path.Value ?? "/";
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? path;
+    var homePage = admin ? "/Admin/Index" : "/Index";
+    bool IsPage(string page) => string.Equals(currentPage, page, StringComparison.OrdinalIgnoreCase);
+    var counterJourney = IsPage("/Customer/Search") || IsPage("/Customer/Seats") || IsPage("/Customer/Ticket");
+    var appearance = UiAppearance.Read(Context.Request);
+}
+<!DOCTYPE html>
+<html lang="@UiText.Language" data-appearance="@appearance" data-theme="@(appearance == "system" ? null : appearance)">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="@(appearance == "dark" ? "#101714" : "#f5f7f8")" />
+    <meta name="color-scheme" content="light dark" />
+    <script src="~/js/appearance.js" asp-append-version="true"></script>
+    <title>@ViewData["Title"] · BusGo</title>
+    <link rel="icon" href="~/images/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="~/fonts/Manrope-Variable.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/trip-search.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/motion.css" asp-append-version="true" />
+    @if (admin)
+    {
+        <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    }
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+</head>
+<body class="@(admin ? "staff-workspace" : null)"
+      data-validation-required="@T("Vui lòng điền mục này.", "Please fill out this field.")"
+      data-validation-email="@T("Vui lòng nhập địa chỉ email hợp lệ.", "Please enter a valid email address.")"
+      data-validation-format="@T("Vui lòng nhập đúng định dạng yêu cầu.", "Please use the requested format.")"
+      data-validation-number="@T("Vui lòng nhập một số hợp lệ.", "Please enter a valid number.")"
+      data-validation-min="@T("Giá trị phải lớn hơn hoặc bằng {0}.", "The value must be at least {0}.")"
+      data-validation-max="@T("Giá trị phải nhỏ hơn hoặc bằng {0}.", "The value must be at most {0}.")"
+      data-validation-short="@T("Vui lòng nhập ít nhất {0} ký tự.", "Please enter at least {0} characters.")"
+      data-validation-long="@T("Vui lòng nhập tối đa {0} ký tự.", "Please enter no more than {0} characters.")">
+<a class="skip-link" href="#main">@T("Bỏ qua đến nội dung", "Skip to content")</a>
+<header class="site-header">
+    <div class="header-inner">
+    <a class="brand" asp-page="@homePage" aria-label="@(admin ? T("Tổng quan quản trị BusGo", "BusGo administration dashboard") : T("Trang chủ BusGo", "BusGo home"))">
+        <span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="16" rx="4" stroke="currentColor" stroke-width="1.7"/><path d="M5 11h14M8 19v2m8-2v2M9 7h6M8 15h1m6 0h1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+        Bus<span class="brand-go">Go</span><span class="brand-demo">demo</span>
+    </a>
+    @if (isOwner)
+    {
+        <span class="staff-workspace-label"><span class="staff-workspace-title">@T("Không gian Chủ sở hữu", "Owner workspace")</span><span class="staff-station">@T("Bến", "Station"): @LocationService.Instance.CurrentLocation</span></span>
+    }
+    else if (admin)
+    {
+        <span class="staff-workspace-label"><span class="staff-workspace-title">@T("Không gian quản trị", "Administration workspace")</span><span class="staff-station">@T("Bến", "Station"): @LocationService.Instance.CurrentLocation</span></span>
+    }
+    <nav id="main-nav" class="main-nav @(admin ? "staff-main-nav" : "")" aria-label="@(isOwner ? T("Không gian điều hành Chủ sở hữu", "Owner governance workspace") : admin ? T("Quản trị và bán vé tại quầy", "Administration and counter sales") : T("Điều hướng chính", "Main navigation"))">
+        @if (admin)
+        {
+            <div class="staff-nav-group" role="group" aria-label="@T("Quản lý", "Management")">
+                <span class="staff-nav-label" aria-hidden="true">@T("Quản lý", "Management")</span>
+                @foreach (var item in new[]
+                {
+                    ("Index", T("Tổng quan", "Overview"), "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"),
+                    ("Trips", T("Lịch chạy", "Schedules"), "M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2M8 14h3m-3 4h7"),
+                    ("CheckIn", T("Soát vé", "Check-in"), "M8 3H4a1 1 0 0 0-1 1v4m13-5h4a1 1 0 0 1 1 1v4M3 16v4a1 1 0 0 0 1 1h4m8 0h4a1 1 0 0 0 1-1v-4M7 12l3 3 7-7"),
+                    ("Payments", T("Thanh toán", "Payments"), "M3 5h18v14H3zM3 10h18M7 15h4"),
+                    ("Discounts", T("Giảm giá thành viên", "Member discounts"), "M4 4h7l9 9-7 7-9-9zM8 8h.01"),
+                    ("Routes", T("Tuyến xe", "Routes"), "M7 7h10a4 4 0 0 1 0 8H7m0-8 3-3M7 7l3 3M7 15l3-3m-3 3 3 3"),
+                    ("Buses", T("Đội xe", "Fleet"), "M5 4h14v15H5zM5 11h14M8 7h8M8 15h1m6 0h1M8 19v2m8-2v2"),
+                    ("Reports", T("Báo cáo", "Reports"), "M4 3v18h17M8 16v-5m5 5V7m5 9V4"),
+                    ("Accounts", T("Tài khoản", "Accounts"), "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8M19 8v6m-3-3h6")
+                })
+                {
+                    if (isOwner && item.Item1 == "CheckIn") continue;
+                    var active = IsPage("/Admin/" + item.Item1);
+                    <a href="/Admin/@item.Item1" class="@(active ? "active" : null)" aria-current="@(active ? "page" : null)"><svg class="staff-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="@item.Item3" /></svg><span>@item.Item2</span></a>
+                }
+            <a asp-page="/Settings" class="@(IsPage("/Settings") ? "active" : null)" aria-current="@(IsPage("/Settings") ? "page" : null)"><svg class="staff-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16M8 4v6m8 4v6" /></svg><span>@T("Cài đặt", "Settings")</span></a>
+            </div>
+            @if (!isOwner)
+            {
+                <div class="staff-nav-group staff-counter-nav" role="group" aria-label="@T("Bán vé", "Ticket sales")">
+                    <span class="staff-nav-label" aria-hidden="true">@T("Quầy vé", "Ticket counter")</span>
+                    <a asp-page="/Customer/Search" class="@(counterJourney ? "active" : null)" aria-current="@(counterJourney ? (IsPage("/Customer/Search") ? "page" : "location") : null)"><svg class="staff-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v5a2 2 0 0 0 0 4v5H4v-5a2 2 0 0 0 0-4zM15 5v3m0 3v2m0 3v3" /></svg><span>@T("Bán vé tại quầy", "Counter sales")</span></a>
+                    <a asp-page="/Customer/Tickets" class="@(IsPage("/Customer/Tickets") ? "active" : null)" aria-current="@(IsPage("/Customer/Tickets") ? "page" : null)"><svg class="staff-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6m-6 4h6" /></svg><span>@T("Vé do tôi lập", "Tickets I issued")</span></a>
+                    <a asp-page="/Customer/History" class="@(IsPage("/Customer/History") ? "active" : null)" aria-current="@(IsPage("/Customer/History") ? "page" : null)"><svg class="staff-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2 7M3 4v7h7m2-4v5l3 2" /></svg><span>@T("Lịch sử bán vé", "Sales history")</span></a>
+                </div>
+            }
+        }
+        else
+        {
+        <a asp-page="/Index" class="@(path == "/" ? "active" : "")" aria-current="@(path == "/" ? "page" : null)">@T("Trang chủ", "Home")</a>
+        <a asp-page="/Customer/Search" class="@(path.Contains("Search") || path.Contains("Seats") ? "active" : "")" aria-current="@(path.Contains("Search") || path.Contains("Seats") ? "page" : null)">@T("Tìm chuyến", "Search trips")</a>
+        <a asp-page="/Customer/Companies" class="@(path.Contains("Compan") ? "active" : "")" aria-current="@(path.Contains("Compan") ? "page" : null)">@T("Nhà xe", "Operators")</a>
+        <a asp-page="/Customer/RouteGuides" class="@(path.Contains("RouteGuides") ? "active" : "")" aria-current="@(path.Contains("RouteGuides") ? "page" : null)">@T("Cẩm nang", "Travel guides")</a>
+        <a asp-page="/Customer/Help" class="@(path.Contains("Help") ? "active" : "")" aria-current="@(path.Contains("Help") ? "page" : null)">@T("Trợ giúp", "Help")</a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a asp-page="/Customer/Tickets" class="@(path.Contains("Ticket") ? "active" : "")">@T("Vé của tôi", "My tickets")</a>
+            <a asp-page="/Customer/History" class="@(path.Contains("History") ? "active" : "")">@T("Lịch sử", "History")</a>
+            <a asp-page="/Customer/Membership" class="@(IsPage("/Customer/Membership") ? "active" : "")" aria-current="@(IsPage("/Customer/Membership") ? "page" : null)">@T("Thành viên", "Membership")</a>
+            <a asp-page="/Customer/Notifications" class="@(IsPage("/Customer/Notifications") ? "active" : "")" aria-current="@(IsPage("/Customer/Notifications") ? "page" : null)">@T("Thông báo", "Notifications")</a>
+        }
+        <a asp-page="/Settings" class="@(IsPage("/Settings") ? "active" : "")" aria-current="@(IsPage("/Settings") ? "page" : null)">@T("Cài đặt", "Settings")</a>
+        }
+    </nav>
+    <div class="account-nav">
+    <a class="theme-toggle" asp-page="/Settings" asp-fragment="appearance-heading" data-theme-toggle
+       aria-label="@T("Giao diện sáng và tối", "Light and dark appearance")"
+       data-label-light="@T("Chuyển sang giao diện sáng", "Switch to light appearance")"
+       data-label-dark="@T("Chuyển sang giao diện tối", "Switch to dark appearance")">
+        <svg class="theme-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M20.5 14.2A8.7 8.7 0 0 1 9.8 3.5 8.7 8.7 0 1 0 20.5 14.2Z" /></svg>
+        <svg class="theme-sun" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.4 1.4m11.2 11.2L19 19M5 19l1.4-1.4M17.6 6.4 19 5" /></svg>
+    </a>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a class="account-name" asp-page="/Account/Profile">@(CurrentUser.Account?.FullName ?? User.Identity.Name)</a>
+        <form method="post" asp-page="/Account/Logout"><button class="text-button" type="submit">@T("Đăng xuất", "Sign out")</button></form>
+    }
+    else
+    {
+        <a asp-page="/Account/Login">@T("Đăng nhập", "Sign in")</a>
+        <a class="button small register-link" asp-page="/Account/Register">@T("Tạo tài khoản", "Create account") <span aria-hidden="true">↗</span></a>
+    }
+    </div>
+    <button class="menu-toggle secondary" type="button" aria-label="@T("Mở hoặc đóng danh mục", "Open or close menu")" aria-expanded="false" aria-controls="main-nav"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+    </div>
+</header>
+<main id="main" class="main-container">
+    @if (TempData["Success"] is string success) { <div class="alert success" role="status">@success</div> }
+    @if (TempData["Error"] is string error) { <div class="alert error" role="alert">@error</div> }
+    @RenderBody()
+</main>
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-main">
+            <div class="footer-about">
+                <a class="brand" asp-page="@homePage">Bus<span class="brand-go">Go</span></a>
+                @if (isOwner)
+                {
+                    <p>@T("Không gian điều hành dành cho Chủ sở hữu (Owner).", "Executive governance workspace for the Station Owner.")<br />@T("Giám sát nhân sự, phân quyền và điều hành hệ thống.", "Oversee staff, access governance and station operations.")</p>
+                }
+                else if (admin)
+                {
+                    <p>@T("Không gian làm việc dành cho quản trị viên.", "Workspace for administrators.")<br />@T("Quản lý vận hành và lập vé cho khách tại quầy.", "Manage operations and issue tickets at the counter.")</p>
+                }
+                else
+                {
+                    <p>@T("Mỗi chuyến đi, một câu chuyện mới.", "Every journey, a new story.")<br />@T("Tìm hành trình phù hợp và trải nghiệm đặt vé ngay trên BusGo.", "Find your next journey and book it on BusGo.")</p>
+                }
+            </div>
+            @if (!admin)
+            {
+            <div class="footer-column">
+                <h2>@T("Khám phá BusGo", "Explore BusGo")</h2>
+                <a asp-page="/Customer/Search">@T("Tìm chuyến xe", "Search trips")</a>
+                <a asp-page="/Customer/Companies">@T("Danh sách nhà xe", "Operator directory")</a>
+                <a asp-page="/Customer/RouteGuides">@T("Cẩm nang tuyến đường", "Route guides")</a>
+            </div>
+            <div class="footer-column">
+                <h2>@T("Hành trình của bạn", "Your journey")</h2>
+                <a asp-page="/Customer/Tickets">@T("Vé của tôi", "My tickets")</a>
+                <a asp-page="/Customer/History">@T("Lịch sử đặt vé", "Booking history")</a>
+                <a asp-page="/Account/Profile">@T("Quản lý tài khoản", "Manage account")</a>
+                <a asp-page="/Settings">@T("Cài đặt", "Settings")</a>
+            </div>
+            <div class="footer-column">
+                <h2>@T("Trước khi khởi hành", "Before departure")</h2>
+                <a asp-page="/Customer/Help">@T("Hướng dẫn đặt vé", "Booking help")</a>
+                <a asp-page="/Customer/Help" asp-fragment="payment">@T("Thông tin thanh toán", "Payment information")</a>
+                <a asp-page="/Customer/Help" asp-fragment="cancellation">@T("Hủy vé và hoàn tiền", "Cancellation and refunds")</a>
+            </div>
+            }
+        </div>
+        <div class="footer-meta"><p>© @DateTime.Now.Year BusGo. @T("Dự án học thuật.", "Academic project.")</p><span class="demo-label">@T("Phiên bản trải nghiệm", "Demo version")</span></div>
+        <p class="demo-disclaimer">@T("Trang web này được tạo ra với mục đích học thuật không được sử dụng để kinh doanh dưới mọi hình thức (demo)", "This website is an academic demonstration and must not be used commercially in any form (demo).")</p>
+    </div>
+</footer>
+<script src="~/js/site.js" asp-append-version="true" defer></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

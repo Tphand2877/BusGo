@@ -1,0 +1,78 @@
+@page
+@model BusGo.Pages.Customer.MembershipModel
+@{ ViewData["Title"] = T("Hạng thành viên", "Membership"); }
+
+<div class="page-header">
+    <div><p class="eyebrow">@T("ĐỒNG HÀNH CÙNG BUSGO", "YOUR BUSGO MEMBERSHIP")</p><h1>@T("Hạng thành viên", "Membership")</h1><p class="muted">@T("Hạng được cập nhật tự động theo chi tiêu vé thực tế đã thanh toán trong suốt thời gian sử dụng tài khoản.", "Your tier updates automatically from your lifetime net settled ticket spending.")</p></div>
+    <a class="button secondary" asp-page="Notifications">@T("Thông báo ưu đãi", "Offer notifications")</a>
+</div>
+@if (Model.Error is not null) { <div class="alert" role="alert">@Model.Error</div> }
+@if (Model.Error is null && Model.Overview is { } membership)
+{
+    <section class="card membership-summary" aria-labelledby="membership-current-heading">
+        <div>
+            <p class="eyebrow" id="membership-current-heading">@T("HẠNG HIỆN TẠI", "CURRENT TIER")</p>
+            <h2><span class="membership-tier membership-tier-@membership.CurrentTier.Tier.ToString().ToLowerInvariant()">@membership.CurrentTier.DisplayName</span></h2>
+            <p class="membership-spend"><strong>@membership.QualifiedSpend.ToString("N0") @T("đ", "VND")</strong><span>@T("Chi tiêu ròng đã thanh toán", "Net settled spending")</span></p>
+            <p class="muted">@T("Chỉ tính giá trị vé đã thanh toán sau giảm giá. Không tính vé chờ thanh toán hoặc đã hoàn tiền; hạng có thể thay đổi khi chi tiêu hợp lệ thay đổi.", "Only paid ticket amounts after discounts count. Pending or refunded tickets are excluded; your tier can change when qualifying spending changes.")</p>
+        </div>
+        <div class="membership-next">
+            @if (membership.NextTier is { } nextTier)
+            {
+                <h3>@Format("Hạng tiếp theo: {0}", "Next tier: {0}", nextTier.DisplayName)</h3>
+                <p>@Format("Còn {0} đ để đạt hạng {1}.", "Spend another {0} VND to reach {1}.", membership.RemainingSpend.ToString("N0"), nextTier.DisplayName)</p>
+                <progress class="membership-progress" value="@membership.ProgressPercent.ToString(System.Globalization.CultureInfo.InvariantCulture)" max="100" aria-label="@Format("Tiến độ đến hạng {0}", "Progress toward {0}", nextTier.DisplayName)">@membership.ProgressPercent.ToString("N0")%</progress>
+                <p class="muted">@Format("Đã hoàn thành {0}% chặng từ hạng hiện tại đến hạng tiếp theo.", "{0}% of the way from your current tier to the next tier.", membership.ProgressPercent.ToString("N0"))</p>
+            }
+            else
+            {
+                <h3>@T("Bạn đã đạt hạng cao nhất", "You have reached the highest tier")</h3>
+                <p>@T("Kim cương là hạng thành viên cao nhất của BusGo.", "Diamond is BusGo's highest membership tier.")</p>
+                <progress class="membership-progress" value="100" max="100" aria-label="@T("Đã đạt hạng cao nhất", "Highest tier reached")">100%</progress>
+            }
+            <a class="membership-notification-link" asp-page="Notifications">@Format("Thông báo chưa đọc: {0}", "Unread notifications: {0}", membership.UnreadNotifications.ToString("N0"))</a>
+        </div>
+    </section>
+
+    <section class="membership-section" aria-labelledby="membership-tiers-heading">
+        <div class="section-heading"><h2 id="membership-tiers-heading">@T("Các hạng thành viên", "Membership tiers")</h2></div>
+        <div class="membership-tier-grid">
+        @foreach (var tier in membership.Tiers)
+        {
+            <article class="card membership-tier-card @(tier.Tier == membership.CurrentTier.Tier ? "is-current" : "")">
+                <h3><span class="membership-tier membership-tier-@tier.Tier.ToString().ToLowerInvariant()">@tier.DisplayName</span></h3>
+                <p>@Format("Từ {0} đ chi tiêu hợp lệ", "From {0} VND qualifying spending", tier.MinimumSpend.ToString("N0"))</p>
+                @if (tier.Tier == membership.CurrentTier.Tier) { <strong class="membership-current-label">@T("Hạng hiện tại của bạn", "Your current tier")</strong> }
+                @if (tier.Tier == MemberTier.Standard) { <p class="muted">@T("Tích lũy chi tiêu để đạt hạng Đồng và nhận ưu đãi theo hạng.", "Build your spending to reach Bronze and receive tier-targeted offers.")</p> }
+            </article>
+        }
+        </div>
+    </section>
+
+    <section class="membership-section" aria-labelledby="membership-offers-heading">
+        <div class="section-heading"><h2 id="membership-offers-heading">@T("Ưu đãi dành cho hạng hiện tại", "Offers for your current tier")</h2></div>
+        <div class="notice membership-rules">
+            <p>@T("Ưu đãi chỉ áp dụng cho đúng hạng hiện tại, khi còn được kích hoạt và trong thời gian hiệu lực (UTC). Khi đặt vé, hệ thống tự chọn mức giảm phần trăm cao nhất; nếu bằng nhau, ưu tiên ưu đãi có mã nhỏ hơn. Không cộng dồn ưu đãi.", "Offers apply only to your exact current tier while active and within their UTC validity window. Booking automatically selects the highest percentage discount; ties use the lowest offer ID. Discounts do not stack.")</p>
+            <p>@T("Ưu đãi sắp tới có thể được thông báo trước nhưng chưa được áp dụng. Vé đã giữ chỗ giữ nguyên mức giảm đã lưu, kể cả khi ưu đãi kết thúc hoặc bị ngừng kích hoạt.", "Upcoming offers may be announced early but cannot be applied yet. Held tickets retain their saved discount even if the offer later ends or is deactivated.")</p>
+        </div>
+        @if (Model.Discounts.Count == 0)
+        {
+            <div class="empty-state"><h3>@T("Chưa có ưu đãi cho hạng này", "No offers for this tier yet")</h3><p>@T("Ưu đãi đang hiệu lực hoặc sắp tới sẽ xuất hiện tại đây khi được công bố cho đúng hạng của bạn.", "Active or upcoming offers will appear here when announced for your exact tier.")</p></div>
+        }
+        else
+        {
+            <div class="grid grid-2 membership-offers">
+            @foreach (var discount in Model.Discounts)
+            {
+                var upcoming = discount.StartsAt > Model.EvaluatedAtUtc;
+                <article class="card membership-offer">
+                    <div class="membership-offer-heading"><h3>@discount.Name</h3><strong class="membership-offer-percent">@discount.Percent.ToString("0.##")%</strong></div>
+                    <span class="badge @(upcoming ? "status-pending" : "status-paid")">@(upcoming ? T("Sắp tới — chưa áp dụng", "Upcoming — not yet applicable") : T("Đang hiệu lực", "Available now"))</span>
+                    <dl class="membership-dates"><div><dt>@T("Bắt đầu", "Starts")</dt><dd>@discount.StartsAt.ToString("g") UTC</dd></div><div><dt>@T("Kết thúc", "Ends")</dt><dd>@discount.EndsAt.ToString("g") UTC</dd></div></dl>
+                    <p class="muted">@Format("Dành cho hạng hiện tại của bạn: {0}.", "For your current tier: {0}.", membership.CurrentTier.DisplayName)</p>
+                </article>
+            }
+            </div>
+        }
+    </section>
+}
