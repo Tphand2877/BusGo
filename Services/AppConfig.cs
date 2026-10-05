@@ -23,6 +23,7 @@ public static class AppConfig
     private static string CleanConnectionString(string? connStr)
     {
         if (string.IsNullOrWhiteSpace(connStr)) return string.Empty;
+        connStr = connStr.Replace("\r", "").Replace("\n", " ");
         connStr = System.Text.RegularExpressions.Regex.Replace(connStr, @"[\u00A0\u1680\u2000-\u200B\u202F\u205F\u3000]", " ");
         connStr = System.Text.RegularExpressions.Regex.Replace(connStr, @"(?i)\buser\s*id\b", "UID");
         connStr = System.Text.RegularExpressions.Regex.Replace(connStr, @"(?i)\bpassword\b", "PWD");
