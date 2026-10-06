@@ -332,3 +332,77 @@ document.querySelectorAll('[data-hero-showcase]').forEach(function (showcase) {
     startTimer();
 });
 document.addEventListener('change', clearConstraintMessage);
+
+// Global smooth page transitions and top progress bar across the entire website
+(function initPageTransitions() {
+    const progressBar = document.getElementById('page-progress');
+
+    function prefersReducedMotion() {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    function resetTransitionState() {
+        document.body.classList.remove('is-page-exiting');
+        if (progressBar) {
+            progressBar.classList.remove('is-loading');
+            progressBar.classList.add('is-finishing');
+            setTimeout(function () {
+                progressBar.classList.remove('is-finishing');
+            }, 300);
+        }
+    }
+
+    resetTransitionState();
+    window.addEventListener('pageshow', resetTransitionState);
+
+    document.addEventListener('click', function (event) {
+        if (prefersReducedMotion()) return;
+
+        const link = event.target.closest('a');
+        if (!link) return;
+
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        if (event.button !== 0) return;
+        if (link.target && link.target !== '_self') return;
+        if (link.hasAttribute('download') || link.hasAttribute('data-no-transition')) return;
+        if (link.hasAttribute('data-print') || link.hasAttribute('data-theme-toggle')) return;
+
+        const rawHref = link.getAttribute('href');
+        if (!rawHref) return;
+        if (rawHref.startsWith('#') || rawHref.startsWith('javascript:') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:')) return;
+
+        let url;
+        try {
+            url = new URL(link.href, window.location.origin);
+        } catch (e) {
+            return;
+        }
+
+        if (url.origin !== window.location.origin) return;
+        if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) return;
+        if (url.href === window.location.href) return;
+
+        // Immediate visual feedback without blocking or delaying native navigation
+        if (progressBar) {
+            progressBar.classList.remove('is-finishing');
+            progressBar.classList.add('is-loading');
+        }
+        document.body.classList.add('is-page-exiting');
+    });
+
+    document.addEventListener('submit', function (event) {
+        if (prefersReducedMotion() || event.defaultPrevented) return;
+        const form = event.target;
+        if (form.target && form.target !== '_self') return;
+
+        if (progressBar) {
+            progressBar.classList.remove('is-finishing');
+            progressBar.classList.add('is-loading');
+        }
+        document.body.classList.add('is-page-exiting');
+
+        setTimeout(function () {
+            resetTransitionState();
+        }, 4000);
+    });
+})();

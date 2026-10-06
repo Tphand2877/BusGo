@@ -60,6 +60,7 @@
         );
 
         try {
+            root.classList.add('is-theme-transitioning');
             const transition = document.startViewTransition(() => {
                 updateFn();
             });
@@ -81,7 +82,12 @@
             }).catch(() => {
                 // If animation fails or is aborted, the new state is already applied.
             });
+
+            transition.finished.finally(() => {
+                root.classList.remove('is-theme-transitioning');
+            });
         } catch (e) {
+            root.classList.remove('is-theme-transitioning');
             updateFn();
         }
     }
